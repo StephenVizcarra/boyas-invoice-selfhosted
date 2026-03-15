@@ -211,7 +211,7 @@ async function generate() {
     const url  = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
     const link = document.createElement('a')
     link.href  = url
-    link.download = response.headers['content-disposition']?.match(/filename="(.+)"/)?.[1] || 'invoice.pdf'
+    link.download = (response.headers['x-invoice-number'] || 'invoice') + '.pdf'
     link.click()
     URL.revokeObjectURL(url)
 
