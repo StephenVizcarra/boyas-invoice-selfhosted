@@ -1,81 +1,151 @@
 <template>
-  <div>
-    <h2 style="font-size:16px; font-weight:600; margin-bottom:20px;">New Invoice</h2>
+  <div class="page">
+    <div class="page-header">
+      <h1 class="page-title">New Invoice</h1>
+      <p class="page-sub">Fill in the details below to generate a PDF invoice.</p>
+    </div>
 
-    <!-- Recipient -->
-    <section style="margin-bottom:28px;">
-      <h3 :style="sectionHeading">Recipient</h3>
+    <!-- Bill To -->
+    <div class="card" style="margin-bottom: 12px;">
+      <div class="card-body">
+        <h2 class="section-label">Bill To</h2>
 
-      <div style="margin-bottom:12px;">
-        <label :style="labelStyle">Select saved recipient</label>
-        <select v-model="selectedRecipientId" @change="onRecipientSelect" :style="inputStyle">
+        <select v-model="selectedRecipientId" class="select-input" @change="onRecipientSelect" style="margin-bottom: 16px;">
           <option value="">— New recipient —</option>
           <option v-for="r in recipients" :key="r.id" :value="r.id">
             {{ r.name }}{{ r.company ? ' · ' + r.company : '' }}
           </option>
         </select>
-      </div>
 
-      <div style="max-width:480px;">
-        <div v-for="field in recipientFields" :key="field.key" style="margin-bottom:12px;">
-          <label :style="labelStyle">{{ field.label }}</label>
-          <input v-model="recipient[field.key]" :type="field.type||'text'" :required="field.required" :style="inputStyle">
+        <div class="field-grid">
+          <div class="field">
+            <label class="field-label">Name <span class="required">*</span></label>
+            <input v-model="recipient.name" type="text" required placeholder="Recipient name" class="field-input">
+          </div>
+          <div class="field">
+            <label class="field-label">Company</label>
+            <input v-model="recipient.company" type="text" placeholder="Company name" class="field-input">
+          </div>
+          <div class="field">
+            <label class="field-label">Email</label>
+            <input v-model="recipient.email" type="email" placeholder="email@example.com" class="field-input">
+          </div>
+          <div class="field">
+            <label class="field-label">Address</label>
+            <input v-model="recipient.address" type="text" placeholder="123 Main St" class="field-input">
+          </div>
+          <div class="field field--wide">
+            <label class="field-label">City, State ZIP</label>
+            <input v-model="recipient.city_state_zip" type="text" placeholder="New York, NY 10001" class="field-input">
+          </div>
         </div>
 
-        <label :style="{ ...labelStyle, display:'flex', alignItems:'center', gap:'8px', textTransform:'none', letterSpacing:'0', fontWeight:'400', fontSize:'13px', cursor:'pointer' }">
-          <input type="checkbox" v-model="saveRecipient"> Save this recipient for future use
+        <label class="save-check">
+          <input type="checkbox" v-model="saveRecipient" class="check-input">
+          Save this recipient for future invoices
         </label>
       </div>
-    </section>
+    </div>
 
     <!-- Line Items -->
-    <section style="margin-bottom:28px;">
-      <h3 :style="sectionHeading">Line Items</h3>
+    <div class="card" style="margin-bottom: 12px;">
+      <div class="card-body">
+        <h2 class="section-label">Line Items</h2>
 
-      <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
-        <thead>
-          <tr>
-            <th :style="thStyle">Description</th>
-            <th :style="{ ...thStyle, width:'130px', textAlign:'right' }">Amount ($)</th>
-            <th style="width:36px;"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, i) in lineItems" :key="i">
-            <td style="padding:6px 6px 6px 0;">
-              <input v-model="item.description" placeholder="e.g. Design work" :style="{ ...inputStyle, width:'100%' }" required>
-            </td>
-            <td style="padding:6px;">
-              <input v-model="item.amount" type="number" min="0" step="0.01" placeholder="0.00"
-                :style="{ ...inputStyle, textAlign:'right' }" required>
-            </td>
-            <td style="padding:6px 0 6px 6px; text-align:center;">
-              <button @click="removeItem(i)" :style="removeBtnStyle" :disabled="lineItems.length === 1">✕</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="col-desc">Description</th>
+              <th class="col-amount">Amount</th>
+              <th class="col-action"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, i) in lineItems" :key="i" class="item-row">
+              <td>
+                <input
+                  v-model="item.description"
+                  type="text"
+                  placeholder="Service or product description"
+                  class="table-input"
+                >
+              </td>
+              <td class="col-amount">
+                <div class="amount-wrap">
+                  <span class="amount-prefix">$</span>
+                  <input
+                    v-model="item.amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    class="table-input amount-input"
+                  >
+                </div>
+              </td>
+              <td class="col-action">
+                <button
+                  type="button"
+                  class="remove-row-btn"
+                  :disabled="lineItems.length === 1"
+                  @click="removeItem(i)"
+                  title="Remove row"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <button @click="addItem" :style="ghostBtnStyle">+ Add item</button>
-
-      <div style="text-align:right; margin-top:16px; font-size:15px; font-weight:600;">
-        Total: ${{ total }}
+        <div class="items-footer">
+          <button type="button" class="add-row-btn" @click="addItem">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add item
+          </button>
+          <div class="total-row">
+            <span class="total-label">Total</span>
+            <span class="total-amount">${{ total }}</span>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
 
     <!-- Notes -->
-    <section style="margin-bottom:28px; max-width:600px;">
-      <h3 :style="sectionHeading">Notes <span style="color:#999; font-weight:400;">(optional)</span></h3>
-      <textarea v-model="notes" rows="3" placeholder="Payment terms, thank you message, etc."
-        style="width:100%; padding:8px 10px; border:1.5px solid #ddd; border-radius:4px; font-size:14px; resize:vertical;"></textarea>
-    </section>
+    <div class="card" style="margin-bottom: 20px;">
+      <div class="card-body">
+        <h2 class="section-label">
+          Notes <span class="section-label-opt">(optional)</span>
+        </h2>
+        <textarea
+          v-model="notes"
+          class="notes-input"
+          placeholder="Payment terms, thank you note, bank details…"
+          rows="3"
+        ></textarea>
+      </div>
+    </div>
 
     <!-- Generate -->
-    <div style="display:flex; align-items:center; gap:14px;">
-      <button @click="generate" :style="btnStyle" :disabled="generating">
-        {{ generating ? 'Generating…' : 'Generate PDF' }}
+    <div class="actions">
+      <button class="btn-primary" :disabled="generating" @click="generate">
+        <svg v-if="!generating" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+        <svg v-else class="spin" width="15" height="15" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4" stroke-dashoffset="10" stroke-linecap="round">
+            <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.75s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+        {{ generating ? 'Generating PDF…' : 'Generate Invoice PDF' }}
       </button>
-      <span v-if="error" style="color:#c0392b; font-size:13px;">{{ error }}</span>
+      <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
   </div>
 </template>
@@ -84,22 +154,14 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-const recipients      = ref([])
+const recipients          = ref([])
 const selectedRecipientId = ref('')
-const saveRecipient   = ref(false)
-const recipient       = ref({ name:'', company:'', address:'', city_state_zip:'', email:'' })
-const lineItems       = ref([{ description:'', amount:'' }])
-const notes           = ref('')
-const generating      = ref(false)
-const error           = ref('')
-
-const recipientFields = [
-  { key:'name',          label:'Name',         required:true },
-  { key:'company',       label:'Company' },
-  { key:'address',       label:'Address' },
-  { key:'city_state_zip',label:'City, State ZIP' },
-  { key:'email',         label:'Email', type:'email' },
-]
+const saveRecipient       = ref(false)
+const recipient           = ref({ name:'', company:'', address:'', city_state_zip:'', email:'' })
+const lineItems           = ref([{ description:'', amount:'' }])
+const notes               = ref('')
+const generating          = ref(false)
+const error               = ref('')
 
 const total = computed(() => {
   const sum = lineItems.value.reduce((acc, i) => acc + (parseFloat(i.amount) || 0), 0)
@@ -120,8 +182,8 @@ function onRecipientSelect() {
   if (r) Object.assign(recipient.value, r)
 }
 
-function addItem()    { lineItems.value.push({ description:'', amount:'' }) }
-function removeItem(i){ lineItems.value.splice(i, 1) }
+function addItem()     { lineItems.value.push({ description:'', amount:'' }) }
+function removeItem(i) { lineItems.value.splice(i, 1) }
 
 async function generate() {
   error.value = ''
@@ -146,7 +208,6 @@ async function generate() {
       notes:      notes.value,
     }, { responseType: 'blob' })
 
-    // Trigger browser download
     const url  = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
     const link = document.createElement('a')
     link.href  = url
@@ -154,7 +215,6 @@ async function generate() {
     link.click()
     URL.revokeObjectURL(url)
 
-    // Reset line items and notes
     lineItems.value = [{ description:'', amount:'' }]
     notes.value     = ''
   } catch (e) {
@@ -163,12 +223,308 @@ async function generate() {
     generating.value = false
   }
 }
-
-const sectionHeading = { fontSize:'12px', fontWeight:'700', textTransform:'uppercase', letterSpacing:'1px', color:'#888', marginBottom:'14px' }
-const labelStyle     = { display:'block', fontSize:'11px', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.5px', color:'#666', marginBottom:'5px' }
-const inputStyle     = { display:'block', width:'100%', padding:'8px 10px', border:'1.5px solid #ddd', borderRadius:'4px', fontSize:'14px', outline:'none' }
-const thStyle        = { textAlign:'left', fontSize:'10px', textTransform:'uppercase', letterSpacing:'0.5px', color:'#888', paddingBottom:'8px', borderBottom:'1.5px solid #222' }
-const btnStyle       = { padding:'10px 26px', background:'#222', color:'#fff', border:'none', borderRadius:'4px', cursor:'pointer', fontWeight:'600', fontSize:'14px' }
-const ghostBtnStyle  = { padding:'7px 14px', background:'#fff', color:'#444', border:'1.5px solid #ccc', borderRadius:'4px', cursor:'pointer', fontSize:'13px' }
-const removeBtnStyle = { background:'none', border:'none', color:'#bbb', cursor:'pointer', fontSize:'14px', padding:'4px' }
 </script>
+
+<style scoped>
+.page { max-width: 700px; }
+
+.page-header { margin-bottom: 22px; }
+.page-title { font-size: 22px; font-weight: 700; color: #1c1917; margin-bottom: 4px; letter-spacing: -0.02em; }
+.page-sub { font-size: 13.5px; color: #78716c; }
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-body { padding: 22px 24px; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a8a29e;
+  margin-bottom: 14px;
+}
+
+.section-label-opt {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #c4bfbb;
+  font-size: 11px;
+}
+
+/* Recipient */
+.select-input {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Figtree', sans-serif;
+  color: #1c1917;
+  background: #fafaf9;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.select-input:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field--wide { grid-column: span 2; }
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #44403c;
+}
+
+.required { color: #dc2626; margin-left: 2px; }
+
+.field-input {
+  padding: 8px 11px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Figtree', sans-serif;
+  color: #1c1917;
+  background: #fafaf9;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.field-input:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  background: #fff;
+}
+
+.field-input::placeholder { color: #c4bfbb; }
+
+.save-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #57534e;
+  cursor: pointer;
+}
+
+.check-input { cursor: pointer; accent-color: #d97706; }
+
+/* Line items */
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.items-table thead th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #a8a29e;
+  padding: 0 0 10px;
+  border-bottom: 1.5px solid #f5f4f0;
+  text-align: left;
+}
+
+.col-desc  { width: auto; }
+.col-amount { width: 150px; padding-left: 12px !important; }
+.col-action { width: 38px; }
+
+.item-row td {
+  padding: 7px 0;
+  border-bottom: 1px solid #f9f8f6;
+  vertical-align: middle;
+}
+
+.item-row:last-child td { border-bottom: none; }
+
+.table-input {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 5px;
+  padding: 7px 9px;
+  font-size: 14px;
+  font-family: 'Figtree', sans-serif;
+  color: #1c1917;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.13s, background 0.13s;
+}
+
+.table-input:hover {
+  border-color: #e7e5e4;
+  background: #fafaf9;
+}
+
+.table-input:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.1);
+  background: #fff;
+}
+
+.table-input::placeholder { color: #c4bfbb; }
+
+.amount-wrap {
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+}
+
+.amount-prefix {
+  font-size: 14px;
+  color: #a8a29e;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+.amount-input { padding-left: 2px; }
+
+.remove-row-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  border: none;
+  background: none;
+  color: #d6d3d1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  margin-left: 8px;
+}
+
+.remove-row-btn:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.remove-row-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.items-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #f5f4f0;
+}
+
+.add-row-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #d97706;
+  cursor: pointer;
+  font-family: 'Figtree', sans-serif;
+  padding: 4px 0;
+  transition: color 0.12s;
+}
+
+.add-row-btn:hover { color: #b45309; }
+
+.total-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.total-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #a8a29e;
+}
+
+.total-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: -0.02em;
+}
+
+/* Notes */
+.notes-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Figtree', sans-serif;
+  color: #1c1917;
+  background: #fafaf9;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  line-height: 1.55;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.notes-input:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  background: #fff;
+}
+
+.notes-input::placeholder { color: #c4bfbb; }
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: #1c1917;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary:hover:not(:disabled) { background: #292524; }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.spin { animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-msg {
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: 500;
+}
+</style>
