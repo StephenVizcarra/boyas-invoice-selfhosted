@@ -1,59 +1,83 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Boyas Invoice
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A self-hosted, single-user invoicing app. Generate professional PDF invoices, manage sender and recipient details, and keep a running invoice counter — all stored locally on your own machine with no external database required.
 
-## About Laravel
+Built with **Laravel 12** (backend) + **Vue 3** (frontend).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Generate and download PDF invoices
+- Save and reuse recipient profiles
+- Auto-incrementing invoice numbers (`INV-YYYY-NNNN`)
+- Upload your own logo to appear on invoices
+- All data stored as local JSON files — no cloud, no database setup
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## First Time Here?
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+If you are not a developer and this is your first time setting up a project like this, start with the step-by-step guide:
 
-## Laravel Sponsors
+**[SETUP_GUIDE.md](./SETUP_GUIDE.md)** — covers everything from installing Git to opening the app in your browser, with instructions for both Windows and macOS.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## Quick Start (for developers)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**Requirements:** PHP 8.2+, Composer, Node.js 18+
 
-## Contributing
+```bash
+git clone <your-repo-url> boyas-invoice
+cd boyas-invoice
+composer run setup
+composer run dev
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Then open **http://localhost:8000** in your browser.
 
-## Code of Conduct
+### What `composer run setup` does
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Runs these steps automatically in sequence:
 
-## Security Vulnerabilities
+1. `composer install` — installs PHP dependencies
+2. Copies `.env.example` → `.env` (if not already present)
+3. `php artisan key:generate` — generates the app encryption key
+4. `php artisan migrate` — initializes the SQLite database file
+5. `npm install` — installs JavaScript dependencies
+6. `npm run build` — compiles the Vue frontend
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Daily development
 
-## License
+```bash
+composer run dev   # starts Laravel server, queue worker, log viewer, and Vite HMR concurrently
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The app is available at **http://localhost:8000**.
+
+---
+
+## Architecture Overview
+
+| Layer | Technology | Notes |
+|-------|-----------|-------|
+| Backend | Laravel 12 | REST API under `/api/` |
+| Frontend | Vue 3 SPA | Single-page app, Tailwind CSS |
+| PDF generation | DomPDF | Rendered server-side |
+| Data storage | JSON files | No relational database for app data |
+| Build tool | Vite | HMR in dev, hashed bundles in prod |
+
+**Data files** (auto-created on first use):
+- `storage/app/sender.json` — your business profile
+- `storage/app/recipients.json` — saved recipients
+- `storage/app/invoice_counter.json` — invoice number tracker
+
+---
+
+## Testing & Code Style
+
+```bash
+composer run test    # clears config cache, then runs PHPUnit
+./vendor/bin/pint    # Laravel Pint (PSR-12 code style fixer)
+```
