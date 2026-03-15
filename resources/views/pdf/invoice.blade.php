@@ -9,8 +9,7 @@
   .header-table { width: 100%; margin-bottom: 44px; }
   .logo-cell { width: 45%; vertical-align: top; }
   .sender-cell { vertical-align: top; text-align: right; }
-  .logo-placeholder { width: 110px; height: 50px; border: 1.5px dashed #ccc; text-align: center; padding-top: 16px; color: #bbb; font-size: 10px; letter-spacing: 0.5px; }
-  .sender-name { font-size: 15px; font-weight: bold; color: #111; }
+.sender-name { font-size: 15px; font-weight: bold; color: #111; }
   .sender-detail { color: #555; line-height: 1.6; }
 
   .invoice-label { font-size: 26px; font-weight: bold; letter-spacing: 1px; color: #111; margin-bottom: 6px; }
@@ -45,8 +44,6 @@
     <td class="logo-cell">
       @if($logoData)
         <img src="data:{{ $logoMime }};base64,{{ $logoData }}" style="max-height:70px; max-width:200px;">
-      @else
-        <div class="logo-placeholder">YOUR LOGO</div>
       @endif
     </td>
     <td class="sender-cell">
