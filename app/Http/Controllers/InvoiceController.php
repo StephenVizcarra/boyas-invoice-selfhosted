@@ -14,9 +14,11 @@ class InvoiceController extends Controller
         $request->validate([
             'recipient'              => 'required|array',
             'recipient.name'         => 'required|string',
-            'line_items'             => 'required|array|min:1',
+            'line_items'               => 'required|array|min:1',
             'line_items.*.description' => 'required|string',
-            'line_items.*.amount'    => 'required|numeric|min:0',
+            'line_items.*.amount'      => 'required|numeric|min:0',
+            'line_items.*.qty'         => 'nullable|numeric|min:0',
+            'line_items.*.rate'        => 'nullable|numeric|min:0',
             'notes'                  => 'nullable|string|max:1000',
         ]);
 
@@ -28,7 +30,8 @@ class InvoiceController extends Controller
         JsonStorage::put('invoice_counter.json', ['counter' => $number + 1]);
 
         $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
-        $total         = array_sum(array_column($request->line_items, 'amount'));
+        $total    = array_sum(array_column($request->line_items, 'amount'));
+        $showQty  = collect($request->line_items)->contains(fn($item) => isset($item['qty']));
 
         // Embed logo as base64 if available
         $logoData = null;
@@ -47,11 +50,12 @@ class InvoiceController extends Controller
             'date'          => date('F j, Y'),
             'total'         => $total,
             'notes'         => $request->notes,
+            'showQty'       => $showQty,
             'logoData'      => $logoData,
             'logoMime'      => $logoMime,
         ]);
 
         $filename = $invoiceNumber . '.pdf';
-        return $pdf->download($filename);
+        return $pdf->download($filename)->header('X-Invoice-Number', $invoiceNumber);
     }
 }
