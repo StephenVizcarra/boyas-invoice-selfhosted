@@ -2,12 +2,7 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-        </div>
+        <img :src="'/logo.png'" alt="Logo" class="brand-logo">
         <span class="brand-name">Boyas Invoice</span>
       </div>
 
@@ -25,17 +20,6 @@
         </button>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="user-chip">
-          <div class="user-avatar">B</div>
-          <div class="user-info">
-            <div class="user-name">Owner</div>
-            <div class="user-status">
-              <span class="status-dot"></span>Active
-            </div>
-          </div>
-        </div>
-      </div>
     </aside>
 
     <div class="main">
@@ -107,15 +91,11 @@ body { font-family: 'Figtree', sans-serif; }
   border-bottom: 1px solid #292524;
 }
 
-.brand-icon {
+.brand-logo {
   width: 32px;
   height: 32px;
   border-radius: 7px;
-  background: #d97706;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
+  object-fit: cover;
   flex-shrink: 0;
 }
 
@@ -183,58 +163,6 @@ body { font-family: 'Figtree', sans-serif; }
   color: #d97706;
 }
 
-/* Sidebar footer */
-.sidebar-footer {
-  padding: 12px 10px 14px;
-  border-top: 1px solid #292524;
-}
-
-.user-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 4px;
-}
-
-.user-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  background: #44403c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #d4c5b0;
-  flex-shrink: 0;
-  border: 1px solid #57534e;
-}
-
-.user-info { line-height: 1; }
-
-.user-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #e7e5e4;
-  margin-bottom: 3px;
-}
-
-.user-status {
-  font-size: 11px;
-  color: #57534e;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #4ade80;
-  display: inline-block;
-}
 
 /* ── Main area ── */
 .main {

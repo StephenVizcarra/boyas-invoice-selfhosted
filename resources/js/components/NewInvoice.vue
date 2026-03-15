@@ -2,7 +2,6 @@
   <div class="page">
     <div class="page-header">
       <h1 class="page-title">New Invoice</h1>
-      <p class="page-sub">Fill in the details below to generate a PDF invoice.</p>
     </div>
 
     <!-- Bill To -->
@@ -50,13 +49,29 @@
     <!-- Line Items -->
     <div class="card" style="margin-bottom: 12px;">
       <div class="card-body">
-        <h2 class="section-label">Line Items</h2>
+        <div class="section-header-row">
+          <h2 class="section-label" style="margin-bottom:0;">Line Items</h2>
+          <button type="button" class="qty-toggle" :class="{ 'qty-toggle--on': useQty }" @click="toggleQty">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            {{ useQty ? 'Hide Qty' : 'Add Qty' }}
+          </button>
+        </div>
 
-        <table class="items-table">
+        <table class="items-table" style="margin-top: 14px;">
           <thead>
             <tr>
               <th class="col-desc">Description</th>
-              <th class="col-amount">Amount</th>
+              <template v-if="useQty">
+                <th class="col-qty">Qty</th>
+                <th class="col-rate">Rate</th>
+                <th class="col-amount">Amount</th>
+              </template>
+              <template v-else>
+                <th class="col-amount">Amount</th>
+              </template>
               <th class="col-action"></th>
             </tr>
           </thead>
@@ -70,19 +85,53 @@
                   class="table-input"
                 >
               </td>
-              <td class="col-amount">
-                <div class="amount-wrap">
-                  <span class="amount-prefix">$</span>
+              <template v-if="useQty">
+                <td class="col-qty">
                   <input
-                    v-model="item.amount"
+                    v-model="item.qty"
                     type="number"
                     step="0.01"
                     min="0"
-                    placeholder="0.00"
-                    class="table-input amount-input"
+                    placeholder="1"
+                    class="table-input"
+                    style="text-align: right;"
                   >
-                </div>
-              </td>
+                </td>
+                <td class="col-rate">
+                  <div class="amount-wrap">
+                    <span class="amount-prefix">$</span>
+                    <input
+                      v-model="item.rate"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      class="table-input amount-input"
+                    >
+                  </div>
+                </td>
+                <td class="col-amount">
+                  <div class="amount-wrap amount-computed">
+                    <span class="amount-prefix">$</span>
+                    <span class="computed-value">{{ lineItemAmount(item) }}</span>
+                  </div>
+                </td>
+              </template>
+              <template v-else>
+                <td class="col-amount">
+                  <div class="amount-wrap">
+                    <span class="amount-prefix">$</span>
+                    <input
+                      v-model="item.amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      class="table-input amount-input"
+                    >
+                  </div>
+                </td>
+              </template>
               <td class="col-action">
                 <button
                   type="button"
@@ -159,14 +208,31 @@ const selectedRecipientId = ref('')
 const saveRecipient       = ref(false)
 const recipient           = ref({ name:'', company:'', address:'', city_state_zip:'', email:'' })
 const lineItems           = ref([{ description:'', amount:'' }])
+const useQty              = ref(false)
 const notes               = ref('')
 const generating          = ref(false)
 const error               = ref('')
 
+function lineItemAmount(item) {
+  return ((parseFloat(item.qty) || 0) * (parseFloat(item.rate) || 0)).toFixed(2)
+}
+
 const total = computed(() => {
-  const sum = lineItems.value.reduce((acc, i) => acc + (parseFloat(i.amount) || 0), 0)
+  const sum = lineItems.value.reduce((acc, item) => {
+    const amount = useQty.value
+      ? (parseFloat(item.qty) || 0) * (parseFloat(item.rate) || 0)
+      : (parseFloat(item.amount) || 0)
+    return acc + amount
+  }, 0)
   return sum.toFixed(2)
 })
+
+function toggleQty() {
+  useQty.value = !useQty.value
+  lineItems.value = [useQty.value
+    ? { description:'', qty:'', rate:'' }
+    : { description:'', amount:'' }]
+}
 
 onMounted(async () => {
   const { data } = await axios.get('/api/recipients')
@@ -182,14 +248,18 @@ function onRecipientSelect() {
   if (r) Object.assign(recipient.value, r)
 }
 
-function addItem()     { lineItems.value.push({ description:'', amount:'' }) }
+function addItem() {
+  lineItems.value.push(useQty.value
+    ? { description:'', qty:'', rate:'' }
+    : { description:'', amount:'' })
+}
 function removeItem(i) { lineItems.value.splice(i, 1) }
 
 async function generate() {
   error.value = ''
   if (!recipient.value.name) { error.value = 'Recipient name is required.'; return }
-  if (lineItems.value.some(i => !i.description || !i.amount)) {
-    error.value = 'All line items need a description and amount.'
+  if (lineItems.value.some(i => !i.description)) {
+    error.value = 'All line items need a description.'
     return
   }
 
@@ -202,9 +272,18 @@ async function generate() {
       saveRecipient.value = false
     }
 
+    const payload = useQty.value
+      ? lineItems.value.map(i => ({
+          description: i.description,
+          qty:         parseFloat(i.qty) || 1,
+          rate:        parseFloat(i.rate) || 0,
+          amount:      (parseFloat(i.qty) || 1) * (parseFloat(i.rate) || 0),
+        }))
+      : lineItems.value
+
     const response = await axios.post('/api/invoice/generate', {
       recipient:  recipient.value,
-      line_items: lineItems.value,
+      line_items: payload,
       notes:      notes.value,
     }, { responseType: 'blob' })
 
@@ -215,7 +294,7 @@ async function generate() {
     link.click()
     URL.revokeObjectURL(url)
 
-    lineItems.value = [{ description:'', amount:'' }]
+    lineItems.value = [useQty.value ? { description:'', qty:'', rate:'' } : { description:'', amount:'' }]
     notes.value     = ''
   } catch (e) {
     error.value = 'Failed to generate PDF. Check your sender profile is filled in.'
@@ -328,6 +407,40 @@ async function generate() {
 
 .check-input { cursor: pointer; accent-color: #d97706; }
 
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.qty-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 5px;
+  background: #fafaf9;
+  color: #78716c;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.qty-toggle:hover {
+  border-color: #d97706;
+  color: #d97706;
+}
+
+.qty-toggle--on {
+  border-color: #d97706;
+  background: #fffbeb;
+  color: #d97706;
+}
+
 /* Line items */
 .items-table {
   width: 100%;
@@ -345,9 +458,19 @@ async function generate() {
   text-align: left;
 }
 
-.col-desc  { width: auto; }
-.col-amount { width: 150px; padding-left: 12px !important; }
+.col-desc   { width: auto; }
+.col-qty    { width: 80px; }
+.col-rate   { width: 130px; padding-left: 12px !important; }
+.col-amount { width: 130px; padding-left: 12px !important; }
 .col-action { width: 38px; }
+
+.amount-computed { cursor: default; }
+.computed-value {
+  font-size: 14px;
+  color: #57534e;
+  padding: 7px 9px 7px 2px;
+  font-weight: 500;
+}
 
 .item-row td {
   padding: 7px 0;

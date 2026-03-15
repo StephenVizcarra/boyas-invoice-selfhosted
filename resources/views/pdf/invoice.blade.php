@@ -31,6 +31,8 @@
     border-bottom: none; border-top: 2px solid #222;
     font-weight: bold; font-size: 13px; padding-top: 14px;
   }
+  .col-qty  { width: 50px; }
+  .col-rate { width: 90px; }
 
   .notes-section { margin-top: 32px; font-size: 11px; color: #666; line-height: 1.6; }
   .notes-label { font-weight: bold; color: #444; margin-bottom: 4px; }
@@ -81,6 +83,10 @@
   <thead>
     <tr>
       <th>Description</th>
+      @if($showQty)
+        <th class="right col-qty">Qty</th>
+        <th class="right col-rate">Rate</th>
+      @endif
       <th class="right">Amount</th>
     </tr>
   </thead>
@@ -88,11 +94,19 @@
     @foreach($lineItems as $item)
     <tr>
       <td>{{ $item['description'] }}</td>
+      @if($showQty)
+        <td class="right col-qty">{{ $item['qty'] ?? 1 }}</td>
+        <td class="right col-rate">${{ number_format((float)($item['rate'] ?? 0), 2) }}</td>
+      @endif
       <td class="right">${{ number_format((float)$item['amount'], 2) }}</td>
     </tr>
     @endforeach
     <tr class="total-row">
       <td>Total</td>
+      @if($showQty)
+        <td class="right col-qty"></td>
+        <td class="right col-rate"></td>
+      @endif
       <td class="right">${{ number_format($total, 2) }}</td>
     </tr>
   </tbody>
