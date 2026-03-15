@@ -47,8 +47,9 @@
         </div>
       </header>
       <main class="content">
-        <SenderProfile v-if="activeTab === 'profile'" />
-        <NewInvoice v-else />
+        <KeepAlive>
+          <component :is="activeTab === 'profile' ? SenderProfile : NewInvoice" />
+        </KeepAlive>
       </main>
     </div>
   </div>
