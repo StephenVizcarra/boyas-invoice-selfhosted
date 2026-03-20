@@ -18,17 +18,23 @@ Module-level reactive state (not inside `setup()`) so the same instance is share
 **Log entry shape:**
 ```js
 {
-  id:        Number,   // Date.now() + Math.random() for uniqueness
+  id:        String,   // crypto.randomUUID()
   type:      String,   // 'pending' | 'success' | 'error'
   message:   String,
-  timestamp: Date,
+  timestamp: Date,     // JS Date object, formatted at render time
 }
 ```
 
+**`id` generation:** Use `crypto.randomUUID()` for guaranteed uniqueness and a clean string key for `v-for`.
+
+**Timestamp display:** Format using `toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' })` at render time in the component template.
+
 **Exposed API:**
 - `logs` — readonly reactive array, newest-first
-- `addLog(type, message)` — appends entry, returns a ref to it so callers can mutate `type`/`message` in-place after async resolution
+- `addLog(type, message)` — appends entry, returns the reactive entry object directly (not a Vue `ref`) so callers can mutate `entry.type` and `entry.message` in-place after async resolution
 - `clearLog()` — empties the array
+
+**Entry cap:** No automatic cap. The "Clear" button is the only removal mechanism. This is intentional for a single-user self-hosted app where session log volume is low.
 
 ### Component: `ActivityLog.vue`
 
@@ -39,7 +45,7 @@ Self-contained panel component. Imports `useActivityLog` directly.
 **UI elements:**
 - Header row: "Activity" label + "Clear" button (calls `clearLog()`)
 - Scrollable list, newest entry at top
-- Per entry: colored indicator dot, message text, dimmed timestamp (`h:mm:ss AM/PM`)
+- Per entry: colored indicator dot, message text, dimmed timestamp
 - Empty state: "No activity yet." in muted text
 
 **Entry type colors:**
@@ -55,25 +61,45 @@ The shell becomes a 3-column flex layout:
 [ Sidebar 220px ] [ Activity Log 260px ] [ Main content flex:1 ]
 ```
 
-The log panel sits between the sidebar and the main content area with a white background and a right border (`1px solid #e7e5e4`). The topbar spans only the `.main` column. The log panel has `overflow-y: auto` so long histories scroll independently.
+The log panel sits between the sidebar and main content. The sidebar retains its existing `border-right: 1px solid #292524` (dark tone). The log panel has a white background with `border-right: 1px solid #e7e5e4` (light tone, matching the topbar border) — no left border, since the sidebar's right border provides the visual separation on that side. The topbar remains nested inside `.main` and is unaffected. The log panel has `overflow-y: auto` and stretches to full viewport height via the flex layout.
 
 ## Events Logged
 
 ### SenderProfile.vue
 
-| Trigger | Initial entry | Resolution |
-|---|---|---|
-| Save starts | `pending` "Saving profile…" | `success` "Profile saved" / `error` "Failed to save profile" |
-| Logo upload starts | `pending` "Uploading logo…" | `success` "Logo uploaded" / `error` "Failed to upload logo" |
-| Logo removed (on save) | `success` "Logo removed" | — |
+The `save()` function performs two sequential async operations within one `try/finally`. Log entries must be created and resolved independently to reflect per-operation outcomes:
+
+**Profile save:**
+1. Create `pending` entry: "Saving profile…"
+2. `await axios.post('/api/sender', form.value)`
+3. On success: mutate entry → `success` "Profile saved"
+4. On error: mutate entry → `error` "Failed to save profile", then `throw` to exit
+
+**Logo removal (inside the `logoRemoved` branch):**
+1. Create `pending` entry: "Removing logo…"
+2. `await axios.delete('/api/sender/logo')`
+3. On success: mutate entry → `success` "Logo removed"
+4. On error: mutate entry → `error` "Failed to remove logo"
+
+**Logo upload (inside the `logoFile` branch):**
+1. Create `pending` entry: "Uploading logo…"
+2. `await axios.post('/api/sender/logo', fd, ...)`
+3. On success: mutate entry → `success` "Logo uploaded"
+4. On error: mutate entry → `error` "Failed to upload logo"
+
+Each operation has its own `try/catch` so a logo failure does not roll back the already-resolved profile success entry.
 
 ### NewInvoice.vue
 
 | Trigger | Initial entry | Resolution |
 |---|---|---|
-| PDF generation starts | `pending` "Generating PDF…" | `success` "Invoice {number} generated" / `error` real server message |
+| PDF generation starts | `pending` "Generating PDF…" | `success` "Invoice {number} generated" / `error` extracted message |
 
-For the error case, extract the actual message from the axios error response (validation errors, server exceptions) rather than displaying the current generic fallback string.
+**Error message extraction priority** (first truthy value wins):
+1. `e.response?.data?.message` — Laravel single-message errors
+2. `Object.values(e.response?.data?.errors ?? {}).flat().join(' ')` — Laravel validation errors
+3. `e.message` — network/JS errors
+4. `'Unknown error'` — final fallback
 
 ## Files Changed
 
@@ -82,11 +108,12 @@ For the error case, extract the actual message from the axios error response (va
 | `resources/js/composables/useActivityLog.js` | New — shared log state |
 | `resources/js/components/ActivityLog.vue` | New — panel UI |
 | `resources/js/App.vue` | Add panel to layout |
-| `resources/js/components/SenderProfile.vue` | Import composable, call `addLog` |
+| `resources/js/components/SenderProfile.vue` | Import composable, add per-operation log entries |
 | `resources/js/components/NewInvoice.vue` | Import composable, call `addLog`, improve error extraction |
 
 ## Out of Scope
 
 - Log persistence across page refreshes (session-only)
 - Filtering or searching log entries
-- Timestamps older than the current session
+- Automatic entry cap or expiry
+- Logging mount-time fetch failures in `SenderProfile` or `NewInvoice` (API unreachable at load is not logged)
