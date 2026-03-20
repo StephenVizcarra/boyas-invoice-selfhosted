@@ -3,46 +3,54 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\JsonStorage;
+use App\Models\Recipient;
 
 class RecipientController extends Controller
 {
     public function index()
     {
-        return response()->json(JsonStorage::get('recipients.json', []));
+        return response()->json(
+            Recipient::all()->map(fn($r) => $this->recipientResponse($r))
+        );
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'company'       => 'nullable|string|max:255',
-            'address'       => 'nullable|string|max:255',
-            'city_state_zip'=> 'nullable|string|max:255',
-            'email'         => 'nullable|email|max:255',
+        $validated = $request->validate([
+            'name'           => 'required|string|max:255',
+            'company'        => 'nullable|string|max:255',
+            'address'        => 'nullable|string|max:255',
+            'city_state_zip' => 'nullable|string|max:255',
+            'email'          => 'nullable|email|max:255',
         ]);
 
-        $recipients = JsonStorage::get('recipients.json', []);
+        $id = $request->input('id') ?? uniqid('r_', true);
 
-        // If an id is provided, update the existing recipient
-        if ($request->has('id')) {
-            $recipients = array_map(function ($r) use ($request, $data) {
-                return $r['id'] === $request->id ? array_merge($r, $data) : $r;
-            }, $recipients);
-        } else {
-            $data['id'] = uniqid('r_', true);
-            $recipients[] = $data;
-        }
+        $recipient = Recipient::updateOrCreate(['id' => $id], $validated);
 
-        JsonStorage::put('recipients.json', array_values($recipients));
-        return response()->json($data);
+        return response()->json($this->recipientResponse($recipient));
     }
 
     public function destroy(string $id)
     {
-        $recipients = JsonStorage::get('recipients.json', []);
-        $recipients = array_filter($recipients, fn($r) => $r['id'] !== $id);
-        JsonStorage::put('recipients.json', array_values($recipients));
+        Recipient::findOrFail($id)->delete();
+
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Build the consistent recipient response shape.
+     * Never exposes DB internals (created_at, updated_at).
+     */
+    private function recipientResponse(Recipient $r): array
+    {
+        return [
+            'id'             => $r->id,
+            'name'           => $r->name,
+            'company'        => $r->company ?? '',
+            'address'        => $r->address ?? '',
+            'city_state_zip' => $r->city_state_zip ?? '',
+            'email'          => $r->email ?? '',
+        ];
     }
 }
