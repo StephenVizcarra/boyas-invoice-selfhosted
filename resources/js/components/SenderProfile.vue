@@ -101,6 +101,7 @@ const fields = [
 const form        = ref({ name:'', company:'', address:'', city_state_zip:'', email:'', phone:'' })
 const logoFile    = ref(null)
 const logoPreview = ref(null)
+const logoRemoved = ref(false)
 const saving      = ref(false)
 const saved       = ref(false)
 const fileInput   = ref(null)
@@ -108,6 +109,9 @@ const fileInput   = ref(null)
 onMounted(async () => {
   const { data } = await axios.get('/api/sender')
   Object.assign(form.value, data)
+  if (data.logo_path) {
+    logoPreview.value = `/api/sender/logo?t=${Date.now()}`
+  }
 })
 
 function onLogoChange(e) {
@@ -125,8 +129,9 @@ function onDrop(e) {
 }
 
 function removeLogo() {
-  logoFile.value = null
+  logoFile.value   = null
   logoPreview.value = null
+  logoRemoved.value = true
   if (fileInput.value) fileInput.value.value = ''
 }
 
@@ -135,7 +140,10 @@ async function save() {
   saved.value  = false
   try {
     await axios.post('/api/sender', form.value)
-    if (logoFile.value) {
+    if (logoRemoved.value) {
+      await axios.delete('/api/sender/logo')
+      logoRemoved.value = false
+    } else if (logoFile.value) {
       const fd = new FormData()
       fd.append('logo', logoFile.value)
       await axios.post('/api/sender/logo', fd, { headers: { 'Content-Type': 'multipart/form-data' } })

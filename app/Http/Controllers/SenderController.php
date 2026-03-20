@@ -45,6 +45,41 @@ class SenderController extends Controller
         return response()->json(['logo_path' => $path]);
     }
 
+    public function getLogo()
+    {
+        $sender = Sender::find(1);
+        if (!$sender?->logo_path || !Storage::disk('local')->exists($sender->logo_path)) {
+            abort(404);
+        }
+
+        $ext  = strtolower(pathinfo($sender->logo_path, PATHINFO_EXTENSION));
+        $mime = match($ext) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png'         => 'image/png',
+            'gif'         => 'image/gif',
+            'svg'         => 'image/svg+xml',
+            'webp'        => 'image/webp',
+            default       => 'application/octet-stream',
+        };
+
+        return response(Storage::disk('local')->get($sender->logo_path), 200)
+            ->header('Content-Type', $mime)
+            ->header('Cache-Control', 'no-store');
+    }
+
+    public function deleteLogo()
+    {
+        $sender = Sender::find(1);
+        if ($sender) {
+            if ($sender->logo_path && Storage::disk('local')->exists($sender->logo_path)) {
+                Storage::disk('local')->delete($sender->logo_path);
+            }
+            $sender->update(['logo_path' => null]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     /**
      * Build the consistent sender response shape.
      * Returns empty strings (not null) for text fields — matches frontend expectations.
