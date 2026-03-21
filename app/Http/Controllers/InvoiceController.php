@@ -12,14 +12,18 @@ class InvoiceController extends Controller
     public function generate(Request $request)
     {
         $request->validate([
-            'recipient'              => 'required|array',
-            'recipient.name'         => 'required|string',
-            'line_items'               => 'required|array|min:1',
-            'line_items.*.description' => 'required|string',
-            'line_items.*.amount'      => 'required|numeric|min:0',
-            'line_items.*.qty'         => 'nullable|numeric|min:0',
-            'line_items.*.rate'        => 'nullable|numeric|min:0',
-            'notes'                  => 'nullable|string|max:1000',
+            'recipient'                  => 'required|array',
+            'recipient.name'             => 'required|string|max:255',
+            'recipient.company'          => 'nullable|string|max:255',
+            'recipient.address'          => 'nullable|string|max:255',
+            'recipient.city_state_zip'   => 'nullable|string|max:255',
+            'recipient.email'            => 'nullable|email|max:255',
+            'line_items'                 => 'required|array|min:1',
+            'line_items.*.description'   => 'required|string|max:500',
+            'line_items.*.amount'        => 'required|numeric|min:0|max:9999999',
+            'line_items.*.qty'           => 'nullable|numeric|min:0|max:9999',
+            'line_items.*.rate'          => 'nullable|numeric|min:0|max:9999999',
+            'notes'                      => 'nullable|string|max:1000',
         ]);
 
         $sender     = JsonStorage::get('sender.json', []);

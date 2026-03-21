@@ -41,7 +41,7 @@ class SenderController extends Controller
         $request->validate(['logo' => 'required|image|max:2048']);
 
         $file = $request->file('logo');
-        $ext  = $file->getClientOriginalExtension();
+        $ext  = $file->extension();
         $path = 'sender_logo.' . $ext;
 
         Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
