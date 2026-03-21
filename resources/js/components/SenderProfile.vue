@@ -88,6 +88,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useActivityLog } from '../composables/useActivityLog'
+
+const { addLog } = useActivityLog()
 
 const fields = [
   { key: 'name',           label: 'Full Name',       required: true, placeholder: 'Jane Smith' },
@@ -101,6 +104,7 @@ const fields = [
 const form        = ref({ name:'', company:'', address:'', city_state_zip:'', email:'', phone:'' })
 const logoFile    = ref(null)
 const logoPreview = ref(null)
+const logoRemoved = ref(false)
 const saving      = ref(false)
 const saved       = ref(false)
 const fileInput   = ref(null)
@@ -108,6 +112,9 @@ const fileInput   = ref(null)
 onMounted(async () => {
   const { data } = await axios.get('/api/sender')
   Object.assign(form.value, data)
+  if (data.logo_path) {
+    logoPreview.value = `/api/sender/logo?t=${Date.now()}`
+  }
 })
 
 function onLogoChange(e) {
@@ -125,21 +132,55 @@ function onDrop(e) {
 }
 
 function removeLogo() {
-  logoFile.value = null
+  logoFile.value   = null
   logoPreview.value = null
+  logoRemoved.value = true
   if (fileInput.value) fileInput.value.value = ''
 }
 
 async function save() {
   saving.value = true
   saved.value  = false
+
   try {
-    await axios.post('/api/sender', form.value)
-    if (logoFile.value) {
-      const fd = new FormData()
-      fd.append('logo', logoFile.value)
-      await axios.post('/api/sender/logo', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-      logoFile.value = null
+    // Profile save
+    const profileEntry = addLog('pending', 'Saving profile…')
+    try {
+      await axios.post('/api/sender', form.value)
+      profileEntry.type    = 'success'
+      profileEntry.message = 'Profile saved'
+    } catch {
+      profileEntry.type    = 'error'
+      profileEntry.message = 'Failed to save profile'
+      throw new Error('profile save failed')
+    }
+
+    // Logo removal
+    if (logoRemoved.value) {
+      const logoEntry = addLog('pending', 'Removing logo…')
+      try {
+        await axios.delete('/api/sender/logo')
+        logoRemoved.value = false
+        logoEntry.type    = 'success'
+        logoEntry.message = 'Logo removed'
+      } catch {
+        logoEntry.type    = 'error'
+        logoEntry.message = 'Failed to remove logo'
+      }
+    // Logo upload
+    } else if (logoFile.value) {
+      const logoEntry = addLog('pending', 'Uploading logo…')
+      try {
+        const fd = new FormData()
+        fd.append('logo', logoFile.value)
+        await axios.post('/api/sender/logo', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        logoFile.value    = null
+        logoEntry.type    = 'success'
+        logoEntry.message = 'Logo uploaded'
+      } catch {
+        logoEntry.type    = 'error'
+        logoEntry.message = 'Failed to upload logo'
+      }
     }
     saved.value = true
     setTimeout(() => { saved.value = false }, 3000)

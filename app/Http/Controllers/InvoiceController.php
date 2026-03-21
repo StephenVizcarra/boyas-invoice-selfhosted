@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\JsonStorage;
+use App\Models\Sender;
+use App\Models\InvoiceCounter;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -26,12 +27,12 @@ class InvoiceController extends Controller
             'notes'                      => 'nullable|string|max:1000',
         ]);
 
-        $sender     = JsonStorage::get('sender.json', []);
-        $counter    = JsonStorage::get('invoice_counter.json', ['counter' => 1]);
-        $number     = $counter['counter'];
+        $sender = Sender::find(1);
 
-        // Persist incremented counter
-        JsonStorage::put('invoice_counter.json', ['counter' => $number + 1]);
+        // Increment first, then read — produces 1 on first call (matching previous behavior)
+        $counter = InvoiceCounter::firstOrCreate(['id' => 1], ['counter' => 0]);
+        $counter->increment('counter');
+        $number = $counter->counter;
 
         $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
         $total    = array_sum(array_column($request->line_items, 'amount'));
@@ -40,14 +41,14 @@ class InvoiceController extends Controller
         // Embed logo as base64 if available
         $logoData = null;
         $logoMime = null;
-        if (!empty($sender['logo_path']) && Storage::disk('local')->exists($sender['logo_path'])) {
-            $logoData = base64_encode(Storage::disk('local')->get($sender['logo_path']));
-            $ext      = pathinfo($sender['logo_path'], PATHINFO_EXTENSION);
+        if (!empty($sender?->logo_path) && Storage::disk('local')->exists($sender->logo_path)) {
+            $logoData = base64_encode(Storage::disk('local')->get($sender->logo_path));
+            $ext      = pathinfo($sender->logo_path, PATHINFO_EXTENSION);
             $logoMime = $ext === 'jpg' ? 'image/jpeg' : 'image/' . $ext;
         }
 
         $pdf = Pdf::loadView('pdf.invoice', [
-            'sender'        => $sender,
+            'sender'        => $sender ? $sender->toArray() : [],
             'recipient'     => $request->recipient,
             'lineItems'     => $request->line_items,
             'invoiceNumber' => $invoiceNumber,

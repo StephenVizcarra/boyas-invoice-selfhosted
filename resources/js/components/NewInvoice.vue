@@ -202,6 +202,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { useActivityLog } from '../composables/useActivityLog'
+
+const { addLog } = useActivityLog()
 
 const recipients          = ref([])
 const selectedRecipientId = ref('')
@@ -255,6 +258,24 @@ function addItem() {
 }
 function removeItem(i) { lineItems.value.splice(i, 1) }
 
+async function extractError(e) {
+  if (e.response?.data instanceof Blob) {
+    try {
+      const text = await e.response.data.text()
+      const json = JSON.parse(text)
+      return json.message
+        || Object.values(json.errors ?? {}).flat().join(' ')
+        || 'Server error'
+    } catch {
+      return 'Server error'
+    }
+  }
+  return e.response?.data?.message
+    || Object.values(e.response?.data?.errors ?? {}).flat().join(' ')
+    || e.message
+    || 'Unknown error'
+}
+
 async function generate() {
   error.value = ''
   if (!recipient.value.name) { error.value = 'Recipient name is required.'; return }
@@ -264,6 +285,7 @@ async function generate() {
   }
 
   generating.value = true
+  const logEntry   = addLog('pending', 'Generating PDF…')
   try {
     if (saveRecipient.value && !selectedRecipientId.value) {
       const { data } = await axios.post('/api/recipients', recipient.value)
@@ -287,17 +309,24 @@ async function generate() {
       notes:      notes.value,
     }, { responseType: 'blob' })
 
+    const invoiceNumber  = response.headers['x-invoice-number'] || 'Invoice'
+    logEntry.type        = 'success'
+    logEntry.message     = `${invoiceNumber} generated`
+
     const url  = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
     const link = document.createElement('a')
     link.href  = url
-    link.download = (response.headers['x-invoice-number'] || 'invoice') + '.pdf'
+    link.download = invoiceNumber + '.pdf'
     link.click()
     URL.revokeObjectURL(url)
 
     lineItems.value = [useQty.value ? { description:'', qty:'', rate:'' } : { description:'', amount:'' }]
     notes.value     = ''
   } catch (e) {
-    error.value = 'Failed to generate PDF. Check your sender profile is filled in.'
+    const msg        = await extractError(e)
+    logEntry.type    = 'error'
+    logEntry.message = msg
+    error.value      = msg
   } finally {
     generating.value = false
   }
