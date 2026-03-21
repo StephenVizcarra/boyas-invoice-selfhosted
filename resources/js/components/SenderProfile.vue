@@ -182,7 +182,6 @@ async function save() {
         logoEntry.message = 'Failed to upload logo'
       }
     }
-
     saved.value = true
     setTimeout(() => { saved.value = false }, 3000)
   } finally {

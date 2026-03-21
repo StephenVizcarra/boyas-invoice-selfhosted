@@ -61,7 +61,6 @@ class InvoiceController extends Controller
         ]);
 
         $filename = $invoiceNumber . '.pdf';
-
         return $pdf->download($filename)->header('X-Invoice-Number', $invoiceNumber);
     }
 }

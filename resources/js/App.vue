@@ -22,8 +22,6 @@
 
     </aside>
 
-    <ActivityLog />
-
     <div class="main">
       <header class="topbar">
         <div class="topbar-breadcrumb">
