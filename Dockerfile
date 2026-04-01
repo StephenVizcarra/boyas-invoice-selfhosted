@@ -31,6 +31,7 @@ FROM php:8.3-fpm-alpine
 
 # System packages
 # sqlite-dev provides sqlite3.h needed to compile pdo_sqlite
+# libwebp-dev adds WebP support to GD (common export format from phones/Mac)
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -39,13 +40,14 @@ RUN apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
-    libzip-dev
+    libzip-dev \
+    libwebp-dev
 
 # Build non-GD extensions first (easier to debug in isolation)
 RUN docker-php-ext-install -j$(nproc) pdo pdo_sqlite zip
 
-# Build GD (image support for logo in PDFs)
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+# Build GD with JPEG, PNG, FreeType, and WebP support
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd
 
 # Enable bundled opcache (already compiled in, just needs activating)
