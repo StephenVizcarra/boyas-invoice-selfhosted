@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: boyas_invoice
+    ports:
+      - "8080:80"
+    volumes:
+      # Persist user data (JSON files, uploaded logo) across container rebuilds
+      - boyas_storage:/var/www/html/storage/app
+      # Persist SQLite database across container rebuilds
+      - boyas_database:/var/www/html/database
+    environment:
+      # Paste the output of `php artisan key:generate --show` here to keep a
+      # stable key across restarts. Leave blank to auto-generate on first boot.
+      APP_KEY: "${APP_KEY:-}"
+      APP_NAME: "Boyas Invoice"
+      APP_URL: "http://localhost:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  boyas_storage:
+    driver: local
+  boyas_database:
+    driver: local
