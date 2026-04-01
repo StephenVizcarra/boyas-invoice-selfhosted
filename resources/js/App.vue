@@ -7,16 +7,18 @@
       </div>
 
       <nav class="nav">
-        <p class="nav-group-label">Menu</p>
         <button
           v-for="tab in tabs"
           :key="tab.key"
-          class="nav-item"
-          :class="{ 'nav-item--active': activeTab === tab.key }"
+          class="nav-card"
+          :class="{ 'nav-card--active': activeTab === tab.key }"
           @click="activeTab = tab.key"
         >
-          <span class="nav-icon" v-html="tab.icon"></span>
-          <span>{{ tab.label }}</span>
+          <span class="nav-card-icon" v-html="tab.icon"></span>
+          <span class="nav-card-text">
+            <span class="nav-card-label">{{ tab.label }}</span>
+            <span class="nav-card-sub">{{ tab.sub }}</span>
+          </span>
         </button>
       </nav>
 
@@ -48,12 +50,14 @@ const tabs = [
   {
     key: 'profile',
     label: 'My Profile',
-    icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
+    sub: 'Your sender info',
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>',
   },
   {
     key: 'invoice',
     label: 'New Invoice',
-    icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
+    sub: 'Generate a PDF',
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
   },
 ]
 
@@ -75,8 +79,8 @@ body { font-family: 'Figtree', sans-serif; }
 
 /* ── Sidebar ── */
 .sidebar {
-  width: 220px;
-  min-width: 220px;
+  width: 240px;
+  min-width: 240px;
   background: #1c1917;
   display: flex;
   flex-direction: column;
@@ -108,61 +112,81 @@ body { font-family: 'Figtree', sans-serif; }
 
 .nav {
   flex: 1;
-  padding: 14px 8px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.nav-group-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #57534e;
-  padding: 0 8px 8px;
-}
-
-.nav-item {
+.nav-card {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 14px;
   width: 100%;
-  border: none;
-  background: none;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: #a8a29e;
+  border: 1px solid #292524;
+  background: #231f1d;
+  padding: 14px 16px;
+  border-radius: 10px;
   cursor: pointer;
   text-align: left;
   font-family: 'Figtree', sans-serif;
-  transition: background 0.12s, color 0.12s;
-  margin-bottom: 2px;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.nav-item:hover {
+.nav-card:hover {
+  background: #2c2826;
+  border-color: #3d3734;
+}
+
+.nav-card--active {
   background: #292524;
-  color: #fafaf9;
+  border-color: #d97706;
 }
 
-.nav-item--active {
-  background: #292524;
-  color: #fafaf9;
-  font-weight: 600;
-}
-
-.nav-icon {
+.nav-card-icon {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   color: #57534e;
-  transition: color 0.12s;
+  transition: color 0.15s;
 }
 
-.nav-item:hover .nav-icon,
-.nav-item--active .nav-icon {
+.nav-card:hover .nav-card-icon,
+.nav-card--active .nav-card-icon {
   color: #d97706;
 }
 
+.nav-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-card-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #a8a29e;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.nav-card:hover .nav-card-label,
+.nav-card--active .nav-card-label {
+  color: #fafaf9;
+}
+
+.nav-card-sub {
+  font-size: 11.5px;
+  color: #57534e;
+  font-weight: 400;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.nav-card:hover .nav-card-sub,
+.nav-card--active .nav-card-sub {
+  color: #a8a29e;
+}
 
 /* ── Main area ── */
 .main {
