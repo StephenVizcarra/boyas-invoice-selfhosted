@@ -173,7 +173,7 @@ async function save() {
       try {
         const fd = new FormData()
         fd.append('logo', logoFile.value)
-        await axios.post('/api/sender/logo', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await axios.post('/api/sender/logo', fd)
         logoFile.value    = null
         logoEntry.type    = 'success'
         logoEntry.message = 'Logo uploaded'
