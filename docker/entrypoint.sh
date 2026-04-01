@@ -14,6 +14,11 @@ fi
 sed -i 's|^APP_ENV=.*|APP_ENV=production|' .env
 sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env
 sed -i 's|^LOG_LEVEL=.*|LOG_LEVEL=error|' .env
+# This project only has the 3 custom app migrations — the default Laravel
+# migrations for sessions/cache/jobs tables were never added. Switch both
+# drivers to file-based so no extra DB tables are needed.
+sed -i 's|^SESSION_DRIVER=.*|SESSION_DRIVER=file|' .env
+sed -i 's|^CACHE_STORE=.*|CACHE_STORE=file|' .env
 
 # ── 2. App key ───────────────────────────────────────────────────────────────
 # If APP_KEY is passed as a Docker env var, write it into .env so artisan can

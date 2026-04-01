@@ -30,24 +30,26 @@ RUN composer install \
 FROM php:8.3-fpm-alpine
 
 # System packages
+# sqlite-dev provides sqlite3.h needed to compile pdo_sqlite
 RUN apk add --no-cache \
     nginx \
     supervisor \
-    sqlite \
+    curl \
+    sqlite-dev \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
-    libzip-dev \
-    curl
+    libzip-dev
 
-# PHP extensions required by Laravel + DomPDF
+# Build non-GD extensions first (easier to debug in isolation)
+RUN docker-php-ext-install -j$(nproc) pdo pdo_sqlite zip
+
+# Build GD (image support for logo in PDFs)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        gd \
-        pdo \
-        pdo_sqlite \
-        zip \
-        opcache
+    && docker-php-ext-install -j$(nproc) gd
+
+# Enable bundled opcache (already compiled in, just needs activating)
+RUN docker-php-ext-enable opcache
 
 # PHP production tuning
 COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini

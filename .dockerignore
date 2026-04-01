@@ -21,11 +21,9 @@ public/storage
 .env.*
 !.env.example
 
-# User data — should live in Docker volumes, not the image
-storage/app/sender.json
-storage/app/recipients.json
-storage/app/invoice_counter.json
-storage/app/public/
+# User data — should live in Docker volumes, not the image.
+# Covers both old (storage/app/*.json) and current (storage/app/private/) layout.
+storage/app/
 storage/logs/
 storage/pail/
 database/database.sqlite
