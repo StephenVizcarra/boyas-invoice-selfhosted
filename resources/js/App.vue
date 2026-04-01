@@ -43,7 +43,6 @@
 import { ref, computed } from 'vue'
 import SenderProfile from './components/SenderProfile.vue'
 import NewInvoice from './components/NewInvoice.vue'
-import ActivityLog from './components/ActivityLog.vue'
 
 const tabs = [
   {

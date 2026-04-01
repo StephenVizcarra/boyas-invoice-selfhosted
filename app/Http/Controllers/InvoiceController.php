@@ -34,7 +34,7 @@ class InvoiceController extends Controller
         $counter->increment('counter');
         $number = $counter->counter;
 
-        $invoiceNumber = 'INV-' . date('Y') . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
+        $invoiceNumber = 'INV-' . now()->format('Y') . '-' . str_pad($number, 4, '0', STR_PAD_LEFT);
         $total    = array_sum(array_column($request->line_items, 'amount'));
         $showQty  = collect($request->line_items)->contains(fn($item) => isset($item['qty']));
 
@@ -43,8 +43,15 @@ class InvoiceController extends Controller
         $logoMime = null;
         if (!empty($sender?->logo_path) && Storage::disk('local')->exists($sender->logo_path)) {
             $logoData = base64_encode(Storage::disk('local')->get($sender->logo_path));
-            $ext      = pathinfo($sender->logo_path, PATHINFO_EXTENSION);
-            $logoMime = $ext === 'jpg' ? 'image/jpeg' : 'image/' . $ext;
+            $ext      = strtolower(pathinfo($sender->logo_path, PATHINFO_EXTENSION));
+            $logoMime = match($ext) {
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png'         => 'image/png',
+                'gif'         => 'image/gif',
+                'svg'         => 'image/svg+xml',
+                'webp'        => 'image/webp',
+                default       => 'application/octet-stream',
+            };
         }
 
         $pdf = Pdf::loadView('pdf.invoice', [
@@ -52,7 +59,7 @@ class InvoiceController extends Controller
             'recipient'     => $request->recipient,
             'lineItems'     => $request->line_items,
             'invoiceNumber' => $invoiceNumber,
-            'date'          => date('F j, Y'),
+            'date'          => now()->format('F j, Y'),
             'total'         => $total,
             'notes'         => $request->notes,
             'showQty'       => $showQty,

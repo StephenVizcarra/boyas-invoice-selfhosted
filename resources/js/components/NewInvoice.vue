@@ -297,9 +297,9 @@ async function generate() {
     const payload = useQty.value
       ? lineItems.value.map(i => ({
           description: i.description,
-          qty:         parseFloat(i.qty) || 1,
+          qty:         parseFloat(i.qty) || 0,
           rate:        parseFloat(i.rate) || 0,
-          amount:      (parseFloat(i.qty) || 1) * (parseFloat(i.rate) || 0),
+          amount:      (parseFloat(i.qty) || 0) * (parseFloat(i.rate) || 0),
         }))
       : lineItems.value
 
@@ -336,37 +336,6 @@ async function generate() {
 <style scoped>
 .page { max-width: 700px; }
 
-.page-header { margin-bottom: 22px; }
-.page-title { font-size: 22px; font-weight: 700; color: #1c1917; margin-bottom: 4px; letter-spacing: -0.02em; }
-.page-sub { font-size: 13.5px; color: #78716c; }
-
-.card {
-  background: #ffffff;
-  border: 1px solid #e7e5e4;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.card-body { padding: 22px 24px; }
-
-.section-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #a8a29e;
-  margin-bottom: 14px;
-}
-
-.section-label-opt {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: #c4bfbb;
-  font-size: 11px;
-}
-
 /* Recipient */
 .select-input {
   width: 100%;
@@ -386,43 +355,6 @@ async function generate() {
   border-color: #d97706;
   box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
 }
-
-.field-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field--wide { grid-column: span 2; }
-
-.field-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #44403c;
-}
-
-.required { color: #dc2626; margin-left: 2px; }
-
-.field-input {
-  padding: 8px 11px;
-  border: 1.5px solid #e7e5e4;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: 'Figtree', sans-serif;
-  color: #1c1917;
-  background: #fafaf9;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-}
-
-.field-input:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
-  background: #fff;
-}
-
-.field-input::placeholder { color: #c4bfbb; }
 
 .save-check {
   display: flex;
@@ -651,28 +583,6 @@ async function generate() {
   gap: 16px;
   flex-wrap: wrap;
 }
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  background: #1c1917;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Figtree', sans-serif;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btn-primary:hover:not(:disabled) { background: #292524; }
-.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-
-.spin { animation: spin 0.75s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .error-msg {
   font-size: 13px;
