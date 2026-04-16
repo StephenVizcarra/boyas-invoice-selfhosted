@@ -10,7 +10,7 @@ class SenderController extends Controller
 {
     public function show()
     {
-        return response()->json($this->senderResponse(Sender::find(1)));
+        return response()->json($this->senderResponse(Sender::first()));
     }
 
     public function update(Request $request)
@@ -38,7 +38,7 @@ class SenderController extends Controller
         $ext  = $file->extension();
         $path = 'sender_logo.' . $ext;
 
-        Storage::disk('local')->put($path, file_get_contents($file->getRealPath()));
+        Storage::disk('local')->putFileAs('', $file, $path);
 
         Sender::updateOrCreate(['id' => 1], ['logo_path' => $path]);
 
@@ -47,7 +47,7 @@ class SenderController extends Controller
 
     public function getLogo()
     {
-        $sender = Sender::find(1);
+        $sender = Sender::first();
         if (!$sender?->logo_path || !Storage::disk('local')->exists($sender->logo_path)) {
             abort(404);
         }
@@ -69,7 +69,7 @@ class SenderController extends Controller
 
     public function deleteLogo()
     {
-        $sender = Sender::find(1);
+        $sender = Sender::first();
         if ($sender) {
             if ($sender->logo_path && Storage::disk('local')->exists($sender->logo_path)) {
                 Storage::disk('local')->delete($sender->logo_path);

@@ -27,7 +27,7 @@ class InvoiceController extends Controller
             'notes'                      => 'nullable|string|max:1000',
         ]);
 
-        $sender = Sender::find(1);
+        $sender = Sender::first();
 
         // Increment first, then read — produces 1 on first call (matching previous behavior)
         $counter = InvoiceCounter::firstOrCreate(['id' => 1], ['counter' => 0]);

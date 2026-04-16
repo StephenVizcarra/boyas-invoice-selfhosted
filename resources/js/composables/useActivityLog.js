@@ -3,12 +3,12 @@ import { reactive } from 'vue'
 const logs = reactive([])
 
 function addLog(type, message) {
-  const entry = reactive({
+  const entry = {
     id:        crypto.randomUUID(),
     type,
     message,
     timestamp: new Date(),
-  })
+  }
   logs.unshift(entry)
   return entry
 }

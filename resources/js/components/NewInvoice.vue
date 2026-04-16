@@ -231,10 +231,19 @@ const total = computed(() => {
 })
 
 function toggleQty() {
+  if (useQty.value) {
+    lineItems.value = lineItems.value.map(item => ({
+      description: item.description,
+      amount:      ((parseFloat(item.qty) || 0) * (parseFloat(item.rate) || 0)).toFixed(2),
+    }))
+  } else {
+    lineItems.value = lineItems.value.map(item => ({
+      description: item.description,
+      qty:         1,
+      rate:        parseFloat(item.amount) || 0,
+    }))
+  }
   useQty.value = !useQty.value
-  lineItems.value = [useQty.value
-    ? { description:'', qty:'', rate:'' }
-    : { description:'', amount:'' }]
 }
 
 onMounted(async () => {

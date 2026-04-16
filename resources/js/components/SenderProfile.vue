@@ -120,15 +120,17 @@ onMounted(async () => {
 function onLogoChange(e) {
   const file = e.target.files[0]
   if (!file) return
-  logoFile.value = file
+  logoFile.value    = file
   logoPreview.value = URL.createObjectURL(file)
+  logoRemoved.value = false
 }
 
 function onDrop(e) {
   const file = e.dataTransfer.files[0]
   if (!file || !file.type.startsWith('image/')) return
-  logoFile.value = file
+  logoFile.value    = file
   logoPreview.value = URL.createObjectURL(file)
+  logoRemoved.value = false
 }
 
 function removeLogo() {
@@ -193,7 +195,6 @@ async function save() {
 <style scoped>
 .page { max-width: 620px; }
 
-.card-body { padding: 22px 24px; }
 .card-divider { height: 1px; background: #f5f4f0; }
 
 .section-label { margin-bottom: 16px; }
