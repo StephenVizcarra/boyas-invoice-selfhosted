@@ -1,281 +1,119 @@
 # Setup Guide — Boyas Invoice
 
-This guide walks you through getting Boyas Invoice running on your computer from scratch. No prior coding experience is needed.
+This guide gets Boyas Invoice running on your Windows machine with no coding experience required.
 
-**Time to complete:** ~20–30 minutes
+**Time to complete:** ~10 minutes (plus a one-time 3–5 minute wait the first time the app builds itself)
 
-**You will need:**
-- A computer running Windows 10/11 or macOS
+**What you'll need:**
+- A Windows 10 or Windows 11 computer
 - An internet connection
-- About 500 MB of free disk space
+- About 5 GB of free disk space (for Docker Desktop)
 
 ---
 
-## Table of Contents
+## Step 1 — Install Docker Desktop
 
-1. [What is all this?](#1-what-is-all-this)
-2. [Install Git](#2-install-git)
-3. [Install PHP](#3-install-php)
-4. [Install Composer](#4-install-composer)
-5. [Install Node.js](#5-install-nodejs)
-6. [Download the project](#6-download-the-project)
-7. [Run the one-time setup](#7-run-the-one-time-setup)
-8. [Start the app](#8-start-the-app)
-9. [Using the app every day](#9-using-the-app-every-day)
-10. [Troubleshooting](#10-troubleshooting)
+Docker is the engine that runs the app in a self-contained box on your computer.
+You only install this once.
 
----
+1. Go to **https://www.docker.com/products/docker-desktop/**
+2. Click **Download for Windows**
+3. Run the installer like any normal program
+4. When asked about **WSL 2**, click **Yes** (this is a Windows feature Docker needs)
+5. Restart your computer if prompted
 
-## 1. What is all this?
+After installing, open **Docker Desktop** from your Start menu and let it finish loading
+(there's a loading animation in the taskbar). You'll see a dashboard appear — that means
+it's ready. You can close the window; Docker keeps running in the background.
 
-Boyas Invoice is a web app that runs **on your own computer**. Instead of going to a website someone else hosts, you run a small local server yourself, then open the app in your regular web browser (Chrome, Firefox, Edge, Safari — any of them work).
-
-To do this, you need to install a few free tools that the app depends on. Think of it like installing drivers for a printer — you only do it once, and then everything just works.
-
-Here is what you will install and why:
-
-| Tool | What it is |
-|------|-----------|
-| **Git** | Downloads ("clones") the project from GitHub to your computer |
-| **PHP** | The programming language the app's backend is written in |
-| **Composer** | Installs the PHP libraries the app needs (like an app store for code) |
-| **Node.js** | Runs the JavaScript build step that compiles the frontend |
+> **Note:** If you see a message about enabling virtualization in BIOS, contact author —
+> this is a one-time setting that takes about 2 minutes to enable.
 
 ---
 
-## 2. Install Git
+## Step 2 — Get the app files
 
-Git is how you download the project and keep it up to date.
+You don't need Git or any coding tools. Just download a ZIP:
 
-### Windows
+1. Go to the GitHub page shared with you
+2. Click the green **Code** button near the top right
+3. Click **Download ZIP**
+4. When it finishes downloading, right-click the ZIP file → **Extract All...**
+5. Choose where to save it (Documents or Desktop is fine) and click **Extract**
 
-1. Go to **https://git-scm.com/download/win**
-2. The download should start automatically. If not, click the link for the latest version.
-3. Run the installer (`.exe` file). Click **Next** through all the steps — the defaults are fine.
-4. When the installer finishes, search for **"Git Bash"** in your Start menu and open it. This is the terminal window you will use for all the commands in this guide.
-
-### macOS
-
-1. Open **Terminal** (press `Cmd + Space`, type "Terminal", press Enter).
-2. Type the following and press Enter:
-   ```
-   git --version
-   ```
-3. If Git is not installed, macOS will automatically prompt you to install the **Xcode Command Line Tools**. Click **Install** and wait for it to finish (this can take a few minutes).
-4. Once done, run `git --version` again — you should see a version number.
-
-**How to check it worked:**
-Open your terminal (Git Bash on Windows, Terminal on Mac) and type:
-```
-git --version
-```
-You should see something like: `git version 2.47.0`
+You now have a folder called something like `Boyas_Invoice_Selfhosted`. Keep it wherever you put it — don't move it later, because the desktop shortcut you'll create in Step 3 points to this location.
 
 ---
 
-## 3. Install PHP
+## Step 3 — Create a desktop shortcut (do this once)
 
-PHP is the language the app runs on.
+Open the folder you just extracted and double-click:
 
-### Windows
+**`Add Desktop Shortcut.bat`**
 
-The easiest way is to install **PHP for Windows** directly:
-
-1. Go to **https://windows.php.net/download/**
-2. Under the **"VS17 x64 Non Thread Safe"** section, click the **Zip** link to download.
-3. Create a folder at `C:\php` (open File Explorer, go to your C: drive, right-click, New → Folder, name it `php`).
-4. Extract the contents of the zip file into `C:\php`.
-5. Now you need to add PHP to your system PATH so you can use it from the terminal:
-   - Press `Win + S`, search for **"Environment Variables"**, click **"Edit the system environment variables"**
-   - Click **"Environment Variables..."**
-   - Under **"System variables"**, find and double-click **"Path"**
-   - Click **New** and add: `C:\php`
-   - Click OK on all windows to save
-6. Close and reopen Git Bash.
-
-> **Tip for Windows:** An easier alternative is to install **XAMPP** (https://www.apachefriends.org/), which includes PHP and adds it to your PATH automatically. During install, you only need to check "PHP" — you don't need Apache or MySQL.
-
-### macOS
-
-macOS comes with a very old version of PHP. Use **Homebrew** to install a current version:
-
-1. Install Homebrew first (a package manager for Mac). In Terminal, paste this and press Enter:
-   ```
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-   Follow any prompts. This may take a few minutes.
-
-2. Once Homebrew is installed, run:
-   ```
-   brew install php
-   ```
-
-**How to check it worked:**
-```
-php --version
-```
-You should see something like: `PHP 8.3.x` — the number needs to be 8.2 or higher.
+A window will flash briefly and you'll see a message saying the shortcut was created.
+You now have a **Boyas Invoice** icon on your desktop.
 
 ---
 
-## 4. Install Composer
-
-Composer is a tool that installs the PHP packages (libraries) the app depends on. It reads a list from the project and downloads everything automatically.
-
-### Windows & macOS
-
-1. Go to **https://getcomposer.org/download/**
-2. **Windows:** Download and run the **Composer-Setup.exe** installer. Follow the prompts — it will find your PHP installation automatically.
-3. **macOS:** Follow the "Command-line installation" instructions on that page. It's four commands you paste into Terminal one at a time.
-
-**How to check it worked:**
-```
-composer --version
-```
-You should see something like: `Composer version 2.8.x`
+## That's it for setup!
 
 ---
 
-## 5. Install Node.js
+## Starting the App
 
-Node.js is used once during setup to compile the frontend code into files the browser can use.
+Double-click **Boyas Invoice** on your desktop (or **`Launch Boyas Invoice.bat`** inside the folder).
 
-### Windows & macOS
+A terminal window will open and show you what's happening:
 
-1. Go to **https://nodejs.org/**
-2. Click the **"LTS"** download button (LTS stands for Long Term Support — it is the most stable version).
-3. Run the installer and follow the prompts. The defaults are all fine.
+- **First time ever:** you'll see a message saying "building the app — grab a coffee." This takes 3–5 minutes and only happens once. The window will tell you when it's ready.
+- **Every time after that:** the app starts in about 10 seconds.
 
-**How to check it worked:**
-```
-node --version
-```
-You should see something like: `v22.x.x` — the number needs to be 18 or higher.
+Your browser will open automatically to **http://localhost:8080** when the app is ready.
 
 ---
 
-## 6. Download the project
+## Stopping the App
 
-Now you will download ("clone") the project from GitHub onto your computer.
+Double-click **`Stop Boyas Invoice.bat`** (in the same folder) when you're done for the day.
 
-1. Open your terminal (Git Bash on Windows, Terminal on Mac).
-
-2. Decide where you want to keep the project. A good place is your Documents folder. Navigate there by typing:
-   ```
-   cd ~/Documents
-   ```
-   (The `cd` command means "change directory" — it's like double-clicking a folder.)
-
-3. Clone the repository (replace the URL below with the actual GitHub URL you were given):
-   ```
-   git clone https://github.com/YOUR-USERNAME/boyas-invoice.git
-   ```
-   You'll see some text scroll by as files download. When it's done, a new folder called `boyas-invoice` will appear in your Documents.
-
-4. Move into that folder:
-   ```
-   cd boyas-invoice
-   ```
-   Your terminal prompt should now show you're inside the project folder.
+You can also just leave it running — it uses very little memory in the background
+and won't slow your computer down.
 
 ---
 
-## 7. Run the one-time setup
+## Your Data
 
-This is the step that installs all the project's dependencies and prepares it to run. You only need to do this **once**.
-
-Make sure you are inside the `boyas-invoice` folder (step 6 above), then run:
-
-```
-composer run setup
-```
-
-This single command will automatically:
-- Install all PHP packages the app needs
-- Create a configuration file (`.env`) from the template
-- Generate a security key for the app
-- Initialize the local database file
-- Install all JavaScript packages
-- Compile the frontend
-
-You will see a lot of text scroll by. This is normal — it is just showing you what it is doing. The whole process takes about 1–3 minutes depending on your internet connection.
-
-**How to know it succeeded:** The last few lines should mention something about assets being compiled, with no red error messages. If you see a line that says something like `DONE` or `Build complete`, you're good.
-
-> **If you see an error** that mentions permissions or a missing file, see the [Troubleshooting](#10-troubleshooting) section below.
+Everything you enter — your sender profile, saved recipients, invoice numbers — is stored
+safely on your computer. It **cannot** be lost by stopping the app, restarting your computer,
+or installing a new version.
 
 ---
 
-## 8. Start the app
+## Getting Updates
 
-Every time you want to use the app, you run this one command from inside the project folder:
+When the author sends you a new version:
 
-```
-composer run dev
-```
-
-You will see four colored lines of output appear — that means the app is running. Leave this terminal window open while you use the app (closing it stops the server).
-
-Now open your web browser and go to:
-
-```
-http://localhost:8000
-```
-
-The Boyas Invoice app should load in your browser.
+1. Download the new ZIP from GitHub and extract it **into the same folder**, replacing files when Windows asks
+2. Double-click **`Launch Boyas Invoice.bat`** as usual
 
 ---
 
-## 9. Using the app every day
+## Troubleshooting
 
-Once setup is done, your daily routine is:
+**The app window says "Docker Desktop is not installed"**
+Go back to Step 1 and install Docker Desktop.
 
-1. Open your terminal (Git Bash on Windows, Terminal on Mac)
-2. Navigate to the project folder:
-   ```
-   cd ~/Documents/boyas-invoice
-   ```
-3. Start the app:
-   ```
-   composer run dev
-   ```
-4. Open **http://localhost:8000** in your browser
-5. When you're done, come back to the terminal and press **Ctrl + C** to stop the server
+**The app window says "Docker did not start in time"**
+Open Docker Desktop from your Start menu manually, wait for the whale icon in the taskbar
+to stop animating, then try launching the app again.
 
-**Your data is safe.** Everything you enter — your profile, saved recipients, invoice history — is stored in files inside the project folder on your computer. It is not sent anywhere online.
+**The browser shows a blank page or error**
+Wait 20–30 more seconds and refresh. The app may still be starting up.
+If it keeps happening, stop the app and launch it again.
 
----
+**Port 8080 is already in use**
+Something else on your computer is using port 8080. Contact me — this is a quick fix.
 
-## 10. Troubleshooting
-
-### "composer: command not found" or "'composer' is not recognized"
-
-Composer was not added to your PATH during installation. On Windows, try reopening Git Bash or restarting your computer. On Mac, follow the Composer download page instructions again carefully.
-
-### "php: command not found" or "'php' is not recognized"
-
-PHP is not on your PATH. On Windows, double-check that `C:\php` is in your Environment Variables PATH (see Step 3). On Mac, try running `brew link php`.
-
-### The setup command fails with a permission error (macOS)
-
-Try running:
-```
-sudo composer run setup
-```
-You will be asked for your Mac login password.
-
-### "Could not open input file: artisan"
-
-You are not in the right folder. Make sure you ran `cd boyas-invoice` (or whatever the folder is named) before running any commands. Type `ls` and press Enter — you should see files like `composer.json` and `artisan` listed.
-
-### The browser shows "This site can't be reached" at localhost:8000
-
-The server is not running. Go back to your terminal and run `composer run dev`. Keep that terminal window open.
-
-### Something else went wrong
-
-If you hit an error not covered here, copy the full error message from your terminal and share it — error messages always contain the information needed to diagnose the problem, even if they look intimidating.
-
----
-
-*That's it! Once these tools are installed, you have everything you need to run the app anytime.*
+**Anything else**
+Take a screenshot of the error message and send me that ishhh.
