@@ -91,9 +91,6 @@ class RecipientTest extends TestCase
 
     public function test_post_recipients_with_unknown_id_creates_new_row(): void
     {
-        // Behavior note: updateOrCreate with an unknown id creates a new recipient.
-        // The JSON implementation silently no-oped; the Eloquent version creates.
-        // This is an intentional, acceptable behavior change.
         $this->postJson('/api/recipients', ['id' => 'r_nonexistent', 'name' => 'Ghost']);
 
         $this->getJson('/api/recipients')
@@ -116,8 +113,6 @@ class RecipientTest extends TestCase
 
     public function test_delete_recipient_returns_404_for_unknown_id(): void
     {
-        // Behavior note: JSON implementation silently returned 200 for unknown ids.
-        // The Eloquent implementation correctly returns 404. This is an intentional improvement.
         $this->deleteJson('/api/recipients/r_doesnotexist')
             ->assertStatus(404);
     }
