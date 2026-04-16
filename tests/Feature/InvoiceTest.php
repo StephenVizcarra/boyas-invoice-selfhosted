@@ -27,7 +27,7 @@ class InvoiceTest extends TestCase
 
     public function test_generate_returns_pdf_content_type(): void
     {
-        $response = $this->post('/api/invoice/generate', $this->validPayload);
+        $response = $this->postJson('/api/invoice/generate', $this->validPayload);
 
         $response->assertStatus(200);
         $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
@@ -35,7 +35,7 @@ class InvoiceTest extends TestCase
 
     public function test_generate_sets_invoice_number_header(): void
     {
-        $response = $this->post('/api/invoice/generate', $this->validPayload);
+        $response = $this->postJson('/api/invoice/generate', $this->validPayload);
 
         $response->assertStatus(200);
         $invoiceNumber = $response->headers->get('X-Invoice-Number');
@@ -50,21 +50,34 @@ class InvoiceTest extends TestCase
 
     public function test_generate_first_invoice_is_number_0001(): void
     {
-        $response = $this->post('/api/invoice/generate', $this->validPayload);
-
         $year = date('Y');
-        $response->assertHeader('X-Invoice-Number', "INV-{$year}-0001");
+
+        $this->postJson('/api/invoice/generate', $this->validPayload)
+            ->assertHeader('X-Invoice-Number', "INV-{$year}-0001");
     }
 
     public function test_generate_increments_invoice_counter_on_each_call(): void
     {
         $year = date('Y');
 
-        $first = $this->post('/api/invoice/generate', $this->validPayload);
-        $first->assertHeader('X-Invoice-Number', "INV-{$year}-0001");
+        $this->postJson('/api/invoice/generate', $this->validPayload)
+            ->assertHeader('X-Invoice-Number', "INV-{$year}-0001");
 
-        $second = $this->post('/api/invoice/generate', $this->validPayload);
-        $second->assertHeader('X-Invoice-Number', "INV-{$year}-0002");
+        $this->postJson('/api/invoice/generate', $this->validPayload)
+            ->assertHeader('X-Invoice-Number', "INV-{$year}-0002");
+    }
+
+    public function test_generate_pdf_filename_matches_invoice_number(): void
+    {
+        $year = date('Y');
+
+        $response = $this->postJson('/api/invoice/generate', $this->validPayload);
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString(
+            "INV-{$year}-0001.pdf",
+            $response->headers->get('Content-Disposition')
+        );
     }
 
     public function test_generate_requires_recipient_name(): void
@@ -85,5 +98,39 @@ class InvoiceTest extends TestCase
         $this->postJson('/api/invoice/generate', $payload)
             ->assertStatus(422)
             ->assertJsonValidationErrors(['line_items']);
+    }
+
+    public function test_generate_requires_line_item_description(): void
+    {
+        $payload = $this->validPayload;
+        $payload['line_items'] = [['description' => '', 'amount' => 100]];
+
+        $this->postJson('/api/invoice/generate', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['line_items.0.description']);
+    }
+
+    public function test_generate_requires_line_item_amount_to_be_numeric(): void
+    {
+        $payload = $this->validPayload;
+        $payload['line_items'] = [['description' => 'Service', 'amount' => 'not-a-number']];
+
+        $this->postJson('/api/invoice/generate', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['line_items.0.amount']);
+    }
+
+    public function test_generate_with_qty_and_rate_fields(): void
+    {
+        $payload = $this->validPayload;
+        $payload['line_items'] = [
+            ['description' => 'Web design', 'amount' => 1200.00, 'qty' => 8, 'rate' => 150.00],
+            ['description' => 'Domain registration', 'amount' => 15.00],
+        ];
+
+        $response = $this->postJson('/api/invoice/generate', $payload);
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
     }
 }

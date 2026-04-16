@@ -123,4 +123,49 @@ class SenderTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['logo']);
     }
+
+    // --- GET /api/sender/logo ---
+
+    public function test_get_logo_returns_404_when_no_logo_exists(): void
+    {
+        $this->get('/api/sender/logo')->assertStatus(404);
+    }
+
+    public function test_get_logo_returns_image_after_upload(): void
+    {
+        Storage::fake('local');
+        $file = UploadedFile::fake()->create('logo.png', 100, 'image/png');
+        $this->post('/api/sender/logo', ['logo' => $file]);
+
+        $response = $this->get('/api/sender/logo');
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('image/png', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+    }
+
+    // --- DELETE /api/sender/logo ---
+
+    public function test_delete_logo_removes_file_and_clears_path(): void
+    {
+        Storage::fake('local');
+        $file = UploadedFile::fake()->create('logo.png', 100, 'image/png');
+        $this->post('/api/sender/logo', ['logo' => $file]);
+
+        $this->getJson('/api/sender')->assertJsonPath('logo_path', 'sender_logo.png');
+
+        $this->delete('/api/sender/logo')
+            ->assertStatus(200)
+            ->assertExactJson(['success' => true]);
+
+        Storage::disk('local')->assertMissing('sender_logo.png');
+        $this->getJson('/api/sender')->assertJsonPath('logo_path', null);
+    }
+
+    public function test_delete_logo_is_idempotent_when_no_logo_exists(): void
+    {
+        $this->delete('/api/sender/logo')
+            ->assertStatus(200)
+            ->assertExactJson(['success' => true]);
+    }
 }
