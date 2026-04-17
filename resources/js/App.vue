@@ -22,6 +22,26 @@
         </button>
       </nav>
 
+      <div class="sidebar-footer">
+        <div class="dev-toggle-row">
+          <span class="dev-toggle-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </span>
+          <span class="dev-toggle-label">Developer Mode</span>
+          <button
+            class="toggle-switch"
+            :class="{ 'toggle-switch--on': devMode }"
+            @click="devMode = !devMode"
+            :aria-pressed="devMode"
+            aria-label="Toggle developer mode"
+          >
+            <span class="toggle-thumb"></span>
+          </button>
+        </div>
+      </div>
+
     </aside>
 
     <div class="main">
@@ -37,6 +57,9 @@
           <component :is="activeTab === 'profile' ? SenderProfile : NewInvoice" />
         </KeepAlive>
       </main>
+      <Transition name="log-panel">
+        <DevLogPanel v-if="devMode" />
+      </Transition>
     </div>
   </div>
 </template>
@@ -45,6 +68,10 @@
 import { ref, computed } from 'vue'
 import SenderProfile from './components/SenderProfile.vue'
 import NewInvoice from './components/NewInvoice.vue'
+import DevLogPanel from './components/DevLogPanel.vue'
+import { useDevMode } from './composables/useDevMode'
+
+const { devMode } = useDevMode()
 
 const tabs = [
   {
@@ -222,5 +249,78 @@ body { font-family: 'Figtree', sans-serif; }
   flex: 1;
   overflow-y: auto;
   padding: 32px 36px;
+}
+
+/* Sidebar footer / dev toggle */
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid #292524;
+  flex-shrink: 0;
+}
+
+.dev-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.dev-toggle-icon {
+  display: flex;
+  color: #57534e;
+}
+
+.dev-toggle-label {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #78716c;
+}
+
+.toggle-switch {
+  width: 30px;
+  height: 17px;
+  background: #44403c;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-switch--on { background: #d97706; }
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch--on .toggle-thumb { transform: translateX(13px); }
+
+/* Log panel slide transition */
+.log-panel-enter-active,
+.log-panel-leave-active {
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+  overflow: hidden;
+}
+
+.log-panel-enter-from,
+.log-panel-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.log-panel-enter-to,
+.log-panel-leave-from {
+  max-height: 200px;
+  opacity: 1;
 }
 </style>

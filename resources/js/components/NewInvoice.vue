@@ -194,6 +194,12 @@
         </svg>
         {{ generating ? 'Generating PDF…' : 'Generate Invoice PDF' }}
       </button>
+      <button v-if="devMode" type="button" class="btn-dev-fill" @click="fillTestData">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+        </svg>
+        Fill test data
+      </button>
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
   </div>
@@ -203,8 +209,10 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useActivityLog } from '../composables/useActivityLog'
+import { useDevMode } from '../composables/useDevMode'
 
 const { addLog } = useActivityLog()
+const { devMode } = useDevMode()
 
 const recipients          = ref([])
 const selectedRecipientId = ref('')
@@ -258,6 +266,54 @@ function onRecipientSelect() {
   }
   const r = recipients.value.find(r => r.id === selectedRecipientId.value)
   if (r) Object.assign(recipient.value, r)
+}
+
+const TEST_INVOICES = [
+  {
+    recipient: { name: 'Daniel Okafor',    company: 'Okafor & Partners LLC',       email: 'daniel@okaforpartners.com',    address: '550 Fifth Avenue, Floor 12',    city_state_zip: 'New York, NY 10036'      },
+    items:     [ { description: 'Web Design Services', qty: 1, rate: 2400, amount: 2400 }, { description: 'Consulting Hours', qty: 8, rate: 175, amount: 1400 }, { description: 'Monthly Retainer — April', qty: 1, rate: 1200, amount: 1200 } ],
+    notes:     'Payment due within 30 days. Please make checks payable to Okafor & Partners LLC or pay via bank transfer. Thank you for your business!',
+  },
+  {
+    recipient: { name: 'Rachel Goldstein', company: 'Goldstein Media Group',        email: 'rachel@goldsteinmg.com',       address: '220 Bush Street, Suite 1400',   city_state_zip: 'San Francisco, CA 94104' },
+    items:     [ { description: 'Brand Identity Package', qty: 1, rate: 3500, amount: 3500 }, { description: 'Social Media Assets', qty: 12, rate: 85, amount: 1020 }, { description: 'Strategy Session', qty: 2, rate: 300, amount: 600 } ],
+    notes:     'Net 15. All deliverables provided as agreed in the project brief dated March 3rd. Thank you for the opportunity to work together.',
+  },
+  {
+    recipient: { name: 'Thomas Nguyen',    company: 'Nguyen Construction Inc.',     email: 'thomas@nguyenconstruction.com', address: '9200 Sunset Blvd, Suite 600',   city_state_zip: 'Los Angeles, CA 90069'   },
+    items:     [ { description: 'Project Management — Q2', qty: 1, rate: 5000, amount: 5000 }, { description: 'Site Assessment Report', qty: 1, rate: 750, amount: 750 } ],
+    notes:     'Invoice covers services rendered April 1–30. Please remit payment by May 15th to avoid a 1.5% monthly late fee.',
+  },
+  {
+    recipient: { name: 'Sofia Alvarez',    company: 'Alvarez Event Planning',       email: 'sofia@alvarezeventco.com',     address: '401 N. Michigan Avenue',        city_state_zip: 'Chicago, IL 60611'       },
+    items:     [ { description: 'Event Coordination (full day)', qty: 3, rate: 1800, amount: 5400 }, { description: 'Vendor Sourcing Fee', qty: 1, rate: 400, amount: 400 }, { description: 'Post-Event Summary Report', qty: 1, rate: 250, amount: 250 } ],
+    notes:     'A pleasure working with you on the spring series. Reach out anytime for future bookings. Payment via ACH preferred.',
+  },
+  {
+    recipient: { name: 'Marcus Webb',      company: '',                             email: 'marcus.webb@gmail.com',        address: '74 Pinecrest Drive',            city_state_zip: 'Austin, TX 78704'        },
+    items:     [ { description: 'Freelance Development — Sprint 4', qty: 40, rate: 120, amount: 4800 }, { description: 'Code Review & Documentation', qty: 5, rate: 120, amount: 600 } ],
+    notes:     'Hours logged in Toggl — report attached. Thanks Marcus, always a smooth project.',
+  },
+]
+
+let lastInvoiceIndex = -1
+
+function fillTestData() {
+  let idx
+  do { idx = Math.floor(Math.random() * TEST_INVOICES.length) } while (idx === lastInvoiceIndex && TEST_INVOICES.length > 1)
+  lastInvoiceIndex = idx
+  const preset = TEST_INVOICES[idx]
+
+  selectedRecipientId.value = ''
+  saveRecipient.value = false
+  recipient.value = { ...preset.recipient }
+  lineItems.value = preset.items.map(item =>
+    useQty.value
+      ? { description: item.description, qty: item.qty,    rate:   item.rate   }
+      : { description: item.description, amount: item.amount }
+  )
+  notes.value = preset.notes
+  addLog('success', `Invoice test data filled (${preset.recipient.name})`)
 }
 
 function addItem() {

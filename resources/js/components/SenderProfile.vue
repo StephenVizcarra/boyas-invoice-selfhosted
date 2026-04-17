@@ -39,12 +39,37 @@
         </h2>
         <div
           class="logo-dropzone"
-          :class="{ 'logo-dropzone--filled': logoPreview }"
-          @click="fileInput.click()"
+          :class="{
+            'logo-dropzone--filled':    logoPreview && !logoUploading,
+            'logo-dropzone--uploading': logoUploading,
+            'logo-dropzone--error':     logoError && !logoUploading,
+          }"
+          @click="!logoUploading && fileInput.click()"
           @dragover.prevent
-          @drop.prevent="onDrop"
+          @drop.prevent="!logoUploading && onDrop($event)"
         >
-          <template v-if="!logoPreview">
+          <template v-if="logoUploading">
+            <svg class="spin" width="22" height="22" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4" stroke-dashoffset="10" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.75s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+            <p class="logo-drop-text">{{ logoPreview ? 'Uploading…' : 'Removing…' }}</p>
+          </template>
+          <template v-else-if="logoError">
+            <div class="logo-drop-icon logo-drop-icon--error">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <p class="logo-drop-text logo-drop-text--error">{{ logoError }}</p>
+            <p class="logo-drop-hint">Click to try again</p>
+          </template>
+          <template v-else-if="logoPreview">
+            <img :src="logoPreview" class="logo-preview">
+          </template>
+          <template v-else>
             <div class="logo-drop-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -53,12 +78,11 @@
               </svg>
             </div>
             <p class="logo-drop-text">Click or drag to upload a logo</p>
-            <p class="logo-drop-hint">PNG, JPG, SVG</p>
+            <p class="logo-drop-hint">PNG, JPG, SVG · max 2 MB</p>
           </template>
-          <img v-else :src="logoPreview" class="logo-preview">
           <input ref="fileInput" type="file" accept="image/*" @change="onLogoChange" style="display:none">
         </div>
-        <button v-if="logoPreview" type="button" class="remove-logo" @click.stop="removeLogo">
+        <button v-if="logoPreview && !logoUploading" type="button" class="remove-logo" @click.stop="removeLogo">
           Remove logo
         </button>
       </div>
@@ -71,6 +95,12 @@
             </circle>
           </svg>
           {{ saving ? 'Saving…' : 'Save Profile' }}
+        </button>
+        <button v-if="devMode" type="button" class="btn-dev-fill" @click="fillTestData">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+            <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+          </svg>
+          Fill test data
         </button>
         <transition name="fade">
           <span v-if="saved" class="saved-badge">
@@ -89,8 +119,10 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useActivityLog } from '../composables/useActivityLog'
+import { useDevMode } from '../composables/useDevMode'
 
 const { addLog } = useActivityLog()
+const { devMode } = useDevMode()
 
 const fields = [
   { key: 'name',           label: 'Full Name',       required: true, placeholder: 'Jane Smith' },
@@ -101,13 +133,13 @@ const fields = [
   { key: 'city_state_zip', label: 'City, State ZIP', wide: true,     placeholder: 'New York, NY 10001' },
 ]
 
-const form        = ref({ name:'', company:'', address:'', city_state_zip:'', email:'', phone:'' })
-const logoFile    = ref(null)
-const logoPreview = ref(null)
-const logoRemoved = ref(false)
-const saving      = ref(false)
-const saved       = ref(false)
-const fileInput   = ref(null)
+const form          = ref({ name:'', company:'', address:'', city_state_zip:'', email:'', phone:'' })
+const logoPreview   = ref(null)
+const logoUploading = ref(false)
+const logoError     = ref('')
+const saving        = ref(false)
+const saved         = ref(false)
+const fileInput     = ref(null)
 
 onMounted(async () => {
   const { data } = await axios.get('/api/sender')
@@ -117,75 +149,97 @@ onMounted(async () => {
   }
 })
 
-function onLogoChange(e) {
+async function onLogoChange(e) {
   const file = e.target.files[0]
   if (!file) return
-  logoFile.value    = file
+  if (fileInput.value) fileInput.value.value = ''
   logoPreview.value = URL.createObjectURL(file)
-  logoRemoved.value = false
+  logoError.value   = ''
+  await uploadLogo(file)
 }
 
-function onDrop(e) {
+async function onDrop(e) {
   const file = e.dataTransfer.files[0]
   if (!file || !file.type.startsWith('image/')) return
-  logoFile.value    = file
   logoPreview.value = URL.createObjectURL(file)
-  logoRemoved.value = false
+  logoError.value   = ''
+  await uploadLogo(file)
 }
 
-function removeLogo() {
-  logoFile.value   = null
-  logoPreview.value = null
-  logoRemoved.value = true
-  if (fileInput.value) fileInput.value.value = ''
+async function uploadLogo(file) {
+  if (file.size > 2 * 1024 * 1024) {
+    logoError.value   = 'Image must be under 2 MB.'
+    logoPreview.value = null
+    return
+  }
+  logoUploading.value = true
+  const entry = addLog('pending', 'Uploading logo…')
+  try {
+    const fd = new FormData()
+    fd.append('logo', file)
+    await axios.post('/api/sender/logo', fd)
+    entry.type        = 'success'
+    entry.message     = 'Logo uploaded'
+    logoPreview.value = `/api/sender/logo?t=${Date.now()}`
+  } catch {
+    entry.type        = 'error'
+    entry.message     = 'Failed to upload logo'
+    logoError.value   = 'Upload failed — please try again.'
+    logoPreview.value = null
+  } finally {
+    logoUploading.value = false
+  }
+}
+
+async function removeLogo() {
+  logoPreview.value   = null
+  logoError.value     = ''
+  logoUploading.value = true
+  const entry = addLog('pending', 'Removing logo…')
+  try {
+    await axios.delete('/api/sender/logo')
+    entry.type    = 'success'
+    entry.message = 'Logo removed'
+  } catch {
+    entry.type    = 'error'
+    entry.message = 'Failed to remove logo'
+  } finally {
+    logoUploading.value = false
+    if (fileInput.value) fileInput.value.value = ''
+  }
+}
+
+const TEST_PROFILES = [
+  { name: 'Margaret Sullivan',  company: 'Sullivan Creative Co.',    email: 'margaret@sullivancreative.co',  phone: '+1 (415) 882-3047', address: '2847 Larkin Street, Suite 4',   city_state_zip: 'San Francisco, CA 94109' },
+  { name: 'James Okonkwo',      company: 'Okonkwo Design Studio',    email: 'james@okonkwodesign.com',       phone: '+1 (312) 554-0192', address: '118 N. Wacker Drive, Floor 22', city_state_zip: 'Chicago, IL 60606'       },
+  { name: 'Priya Mehta',        company: 'Mehta Consulting Group',   email: 'priya@mehtacg.io',              phone: '+1 (646) 771-3350', address: '350 Fifth Avenue, Suite 7800',  city_state_zip: 'New York, NY 10118'      },
+  { name: 'Carlos Reyes',       company: 'Reyes & Associates LLC',   email: 'carlos@reyesassoc.com',         phone: '+1 (214) 903-6281', address: '1700 Pacific Avenue, Ste 2400', city_state_zip: 'Dallas, TX 75201'        },
+  { name: 'Fiona Blackwell',    company: 'Blackwell Studio',         email: 'fiona@blackwellstudio.co',      phone: '+1 (503) 448-7723', address: '1020 SW Taylor Street',         city_state_zip: 'Portland, OR 97205'      },
+]
+
+let lastProfileIndex = -1
+
+function fillTestData() {
+  let idx
+  do { idx = Math.floor(Math.random() * TEST_PROFILES.length) } while (idx === lastProfileIndex && TEST_PROFILES.length > 1)
+  lastProfileIndex = idx
+  form.value = { ...TEST_PROFILES[idx] }
+  addLog('success', `Profile test data filled (${TEST_PROFILES[idx].name})`)
 }
 
 async function save() {
   saving.value = true
   saved.value  = false
-
+  const entry = addLog('pending', 'Saving profile…')
   try {
-    // Profile save
-    const profileEntry = addLog('pending', 'Saving profile…')
-    try {
-      await axios.post('/api/sender', form.value)
-      profileEntry.type    = 'success'
-      profileEntry.message = 'Profile saved'
-    } catch {
-      profileEntry.type    = 'error'
-      profileEntry.message = 'Failed to save profile'
-      throw new Error('profile save failed')
-    }
-
-    // Logo removal
-    if (logoRemoved.value) {
-      const logoEntry = addLog('pending', 'Removing logo…')
-      try {
-        await axios.delete('/api/sender/logo')
-        logoRemoved.value = false
-        logoEntry.type    = 'success'
-        logoEntry.message = 'Logo removed'
-      } catch {
-        logoEntry.type    = 'error'
-        logoEntry.message = 'Failed to remove logo'
-      }
-    // Logo upload
-    } else if (logoFile.value) {
-      const logoEntry = addLog('pending', 'Uploading logo…')
-      try {
-        const fd = new FormData()
-        fd.append('logo', logoFile.value)
-        await axios.post('/api/sender/logo', fd)
-        logoFile.value    = null
-        logoEntry.type    = 'success'
-        logoEntry.message = 'Logo uploaded'
-      } catch {
-        logoEntry.type    = 'error'
-        logoEntry.message = 'Failed to upload logo'
-      }
-    }
-    saved.value = true
+    await axios.post('/api/sender', form.value)
+    entry.type    = 'success'
+    entry.message = 'Profile saved'
+    saved.value   = true
     setTimeout(() => { saved.value = false }, 3000)
+  } catch {
+    entry.type    = 'error'
+    entry.message = 'Failed to save profile'
   } finally {
     saving.value = false
   }
@@ -213,7 +267,7 @@ async function save() {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
 }
 
 .logo-dropzone:hover {
@@ -228,8 +282,33 @@ async function save() {
   padding: 16px;
 }
 
+.logo-dropzone--uploading {
+  cursor: default;
+  opacity: 0.65;
+  border-style: solid;
+  border-color: #e7e5e4;
+}
+
+.logo-dropzone--uploading:hover {
+  border-color: #e7e5e4;
+  background: #fafaf9;
+}
+
+.logo-dropzone--error {
+  border-style: solid;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.logo-dropzone--error:hover {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
 .logo-drop-icon { color: #c4bfbb; margin-bottom: 2px; }
+.logo-drop-icon--error { color: #dc2626; margin-bottom: 2px; }
 .logo-drop-text { font-size: 13px; font-weight: 500; color: #78716c; }
+.logo-drop-text--error { color: #dc2626; }
 .logo-drop-hint { font-size: 11.5px; color: #c4bfbb; }
 
 .logo-preview { max-height: 72px; max-width: 220px; object-fit: contain; }

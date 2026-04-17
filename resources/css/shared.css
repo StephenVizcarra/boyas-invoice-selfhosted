@@ -89,3 +89,21 @@
 
 .spin { animation: spin 0.75s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-dev-fill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: #d97706;
+  border: 1.5px solid #d97706;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-dev-fill:hover { background: #fffbeb; }
