@@ -46,9 +46,9 @@ class RecipientTest extends TestCase
     public function test_post_recipients_creates_new_recipient_with_r_prefixed_id(): void
     {
         $response = $this->postJson('/api/recipients', [
-            'name'    => 'Alice',
+            'name' => 'Alice',
             'company' => 'Wonderland Inc',
-            'email'   => 'alice@example.com',
+            'email' => 'alice@example.com',
         ]);
 
         $response->assertStatus(200)

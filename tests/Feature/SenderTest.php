@@ -19,13 +19,13 @@ class SenderTest extends TestCase
 
         $response->assertStatus(200)
             ->assertExactJson([
-                'name'           => '',
-                'company'        => '',
-                'address'        => '',
+                'name' => '',
+                'company' => '',
+                'address' => '',
                 'city_state_zip' => '',
-                'email'          => '',
-                'phone'          => '',
-                'logo_path'      => null,
+                'email' => '',
+                'phone' => '',
+                'logo_path' => null,
             ]);
     }
 
@@ -44,25 +44,25 @@ class SenderTest extends TestCase
     public function test_post_sender_saves_and_returns_profile(): void
     {
         $payload = [
-            'name'           => 'Jane Doe',
-            'company'        => 'ACME Corp',
-            'address'        => '123 Main St',
+            'name' => 'Jane Doe',
+            'company' => 'ACME Corp',
+            'address' => '123 Main St',
             'city_state_zip' => 'Springfield, IL 62701',
-            'email'          => 'jane@example.com',
-            'phone'          => '555-1234',
+            'email' => 'jane@example.com',
+            'phone' => '555-1234',
         ];
 
         $response = $this->postJson('/api/sender', $payload);
 
         $response->assertStatus(200)
             ->assertJson([
-                'name'           => 'Jane Doe',
-                'company'        => 'ACME Corp',
-                'address'        => '123 Main St',
+                'name' => 'Jane Doe',
+                'company' => 'ACME Corp',
+                'address' => '123 Main St',
                 'city_state_zip' => 'Springfield, IL 62701',
-                'email'          => 'jane@example.com',
-                'phone'          => '555-1234',
-                'logo_path'      => null,
+                'email' => 'jane@example.com',
+                'phone' => '555-1234',
+                'logo_path' => null,
             ]);
 
         // Response must not expose DB internals

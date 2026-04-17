@@ -3,19 +3,26 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class InvoiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+    }
+
     private array $validPayload = [
         'recipient' => [
-            'name'           => 'Test Client',
-            'company'        => 'Test Co',
-            'address'        => '456 Client Ave',
+            'name' => 'Test Client',
+            'company' => 'Test Co',
+            'address' => '456 Client Ave',
             'city_state_zip' => 'Testville, TX 75001',
-            'email'          => 'client@example.com',
+            'email' => 'client@example.com',
         ],
         'line_items' => [
             ['description' => 'Consulting services', 'amount' => 500.00],

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Sender;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class SenderController extends Controller
@@ -16,12 +16,12 @@ class SenderController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'company'        => 'nullable|string|max:255',
-            'address'        => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
             'city_state_zip' => 'nullable|string|max:255',
-            'email'          => 'nullable|email|max:255',
-            'phone'          => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:50',
         ]);
 
         // updateOrCreate only updates the columns in $validated — logo_path is untouched
@@ -35,8 +35,8 @@ class SenderController extends Controller
         $request->validate(['logo' => 'required|image|max:2048']);
 
         $file = $request->file('logo');
-        $ext  = $file->extension();
-        $path = 'sender_logo.' . $ext;
+        $ext = $file->extension();
+        $path = 'sender_logo.'.$ext;
 
         Storage::disk('local')->putFileAs('', $file, $path);
 
@@ -48,18 +48,18 @@ class SenderController extends Controller
     public function getLogo()
     {
         $sender = Sender::first();
-        if (!$sender?->logo_path || !Storage::disk('local')->exists($sender->logo_path)) {
+        if (! $sender?->logo_path || ! Storage::disk('local')->exists($sender->logo_path)) {
             abort(404);
         }
 
-        $ext  = strtolower(pathinfo($sender->logo_path, PATHINFO_EXTENSION));
-        $mime = match($ext) {
+        $ext = strtolower(pathinfo($sender->logo_path, PATHINFO_EXTENSION));
+        $mime = match ($ext) {
             'jpg', 'jpeg' => 'image/jpeg',
-            'png'         => 'image/png',
-            'gif'         => 'image/gif',
-            'svg'         => 'image/svg+xml',
-            'webp'        => 'image/webp',
-            default       => 'application/octet-stream',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'webp' => 'image/webp',
+            default => 'application/octet-stream',
         };
 
         return response(Storage::disk('local')->get($sender->logo_path), 200)
@@ -88,13 +88,13 @@ class SenderController extends Controller
     private function senderResponse(?Sender $sender): array
     {
         return [
-            'name'           => $sender?->name ?? '',
-            'company'        => $sender?->company ?? '',
-            'address'        => $sender?->address ?? '',
+            'name' => $sender?->name ?? '',
+            'company' => $sender?->company ?? '',
+            'address' => $sender?->address ?? '',
             'city_state_zip' => $sender?->city_state_zip ?? '',
-            'email'          => $sender?->email ?? '',
-            'phone'          => $sender?->phone ?? '',
-            'logo_path'      => $sender?->logo_path ?? null,
+            'email' => $sender?->email ?? '',
+            'phone' => $sender?->phone ?? '',
+            'logo_path' => $sender?->logo_path ?? null,
         ];
     }
 }

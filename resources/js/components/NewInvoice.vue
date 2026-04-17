@@ -206,10 +206,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useActivityLog } from '../composables/useActivityLog'
 import { useDevMode } from '../composables/useDevMode'
+
+const props = defineProps({
+  prefillSeed: { type: Object, default: null },
+})
+
+const emit = defineEmits(['prefill-consumed'])
 
 const { addLog } = useActivityLog()
 const { devMode } = useDevMode()
@@ -223,6 +229,29 @@ const useQty              = ref(false)
 const notes               = ref('')
 const generating          = ref(false)
 const error               = ref('')
+
+watch(() => props.prefillSeed, (seed) => {
+  if (!seed) return
+
+  const isDirty = recipient.value.name || lineItems.value.some(i => i.description)
+  if (isDirty && !confirm('Replace the current draft with this invoice?')) return
+
+  selectedRecipientId.value = ''
+  saveRecipient.value       = false
+  recipient.value           = { ...seed.recipient }
+  notes.value               = seed.notes || ''
+
+  const hasQty = seed.line_items.some(i => i.qty != null)
+  useQty.value = hasQty
+  lineItems.value = seed.line_items.map(item =>
+    hasQty
+      ? { description: item.description, qty: item.qty ?? 1, rate: item.rate ?? 0 }
+      : { description: item.description, amount: item.amount ?? 0 }
+  )
+
+  addLog('success', `Duplicated ${seed.number} into new draft`)
+  emit('prefill-consumed')
+})
 
 function lineItemAmount(item) {
   return ((parseFloat(item.qty) || 0) * (parseFloat(item.rate) || 0)).toFixed(2)

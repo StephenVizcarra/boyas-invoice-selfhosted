@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Recipient;
+use Illuminate\Http\Request;
 
 class RecipientController extends Controller
 {
     public function index()
     {
         return response()->json(
-            Recipient::all()->map(fn($r) => $this->recipientResponse($r))
+            Recipient::all()->map(fn ($r) => $this->recipientResponse($r))
         );
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'           => 'required|string|max:255',
-            'company'        => 'nullable|string|max:255',
-            'address'        => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
             'city_state_zip' => 'nullable|string|max:255',
-            'email'          => 'nullable|email|max:255',
+            'email' => 'nullable|email|max:255',
         ]);
 
         $id = $request->input('id') ?? uniqid('r_', true);
@@ -45,12 +45,12 @@ class RecipientController extends Controller
     private function recipientResponse(Recipient $r): array
     {
         return [
-            'id'             => $r->id,
-            'name'           => $r->name,
-            'company'        => $r->company ?? '',
-            'address'        => $r->address ?? '',
+            'id' => $r->id,
+            'name' => $r->name,
+            'company' => $r->company ?? '',
+            'address' => $r->address ?? '',
             'city_state_zip' => $r->city_state_zip ?? '',
-            'email'          => $r->email ?? '',
+            'email' => $r->email ?? '',
         ];
     }
 }

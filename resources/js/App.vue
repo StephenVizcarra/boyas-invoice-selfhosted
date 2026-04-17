@@ -54,7 +54,12 @@
       </header>
       <main class="content">
         <KeepAlive>
-          <component :is="activeTab === 'profile' ? SenderProfile : NewInvoice" />
+          <component
+            :is="tabComponents[activeTab]"
+            :prefill-seed="prefillSeed"
+            @prefill-consumed="prefillSeed = null"
+            @duplicate="handleDuplicate"
+          />
         </KeepAlive>
       </main>
       <Transition name="log-panel">
@@ -68,6 +73,7 @@
 import { ref, computed } from 'vue'
 import SenderProfile from './components/SenderProfile.vue'
 import NewInvoice from './components/NewInvoice.vue'
+import InvoiceHistory from './components/InvoiceHistory.vue'
 import DevLogPanel from './components/DevLogPanel.vue'
 import { useDevMode } from './composables/useDevMode'
 
@@ -86,10 +92,24 @@ const tabs = [
     sub: 'Generate a PDF',
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>',
   },
+  {
+    key: 'history',
+    label: 'History',
+    sub: 'Previously generated',
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 3h6l2 3h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>',
+  },
 ]
 
-const activeTab = ref('profile')
+const tabComponents = { profile: SenderProfile, invoice: NewInvoice, history: InvoiceHistory }
+
+const activeTab      = ref('profile')
+const prefillSeed    = ref(null)
 const activeTabLabel = computed(() => tabs.find(t => t.key === activeTab.value)?.label)
+
+function handleDuplicate(invoice) {
+  prefillSeed.value = { ...invoice }
+  activeTab.value   = 'invoice'
+}
 </script>
 
 <style>
