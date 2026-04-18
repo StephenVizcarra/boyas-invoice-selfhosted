@@ -9,12 +9,16 @@
       <div class="card-body">
         <h2 class="section-label">Bill To</h2>
 
-        <select v-model="selectedRecipientId" class="select-input" @change="onRecipientSelect" style="margin-bottom: 16px;">
-          <option value="">— New recipient —</option>
-          <option v-for="r in recipients" :key="r.id" :value="r.id">
-            {{ r.name }}{{ r.company ? ' · ' + r.company : '' }}
-          </option>
-        </select>
+        <div class="recipient-select-wrap">
+          <select v-model="selectedRecipientId" class="select-input select-input--recipient" @change="onRecipientSelect">
+            <option value="">   New recipient</option>
+            <optgroup v-if="recipients.length > 0" label="──────────────────">
+              <option v-for="r in recipients" :key="r.id" :value="r.id">
+                {{ r.name }}{{ r.company ? ' · ' + r.company : '' }}
+              </option>
+            </optgroup>
+          </select>
+        </div>
 
         <div class="field-grid">
           <div class="field">
@@ -39,10 +43,43 @@
           </div>
         </div>
 
-        <label class="save-check">
-          <input type="checkbox" v-model="saveRecipient" class="check-input">
-          Save this recipient for future invoices
-        </label>
+        <div class="recipient-footer">
+          <span v-if="selectedRecipientId" class="saved-contact-pill">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Saved contact
+            <button type="button" class="delete-contact-btn" :disabled="deletingContact" @click="deleteContact" title="Delete this contact">
+              <svg v-if="deletingContact" class="spin" width="10" height="10" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4" stroke-dashoffset="10" stroke-linecap="round">
+                  <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.75s" repeatCount="indefinite"/>
+                </circle>
+              </svg>
+              <svg v-else width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </span>
+          <button
+            v-else-if="recipient.name"
+            type="button"
+            class="save-contact-btn"
+            :disabled="savingContact"
+            @click="saveToContacts"
+          >
+            <svg v-if="savingContact" class="spin" width="12" height="12" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4" stroke-dashoffset="10" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.75s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+            <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+            {{ savingContact ? 'Saving…' : 'Save to contacts' }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -63,6 +100,7 @@
         <table class="items-table" style="margin-top: 14px;">
           <thead>
             <tr>
+              <th class="col-handle"></th>
               <th class="col-desc">Description</th>
               <template v-if="useQty">
                 <th class="col-qty">Qty</th>
@@ -76,7 +114,29 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, i) in lineItems" :key="i" class="item-row">
+            <tr
+              v-for="(item, i) in lineItems"
+              :key="i"
+              class="item-row"
+              :class="{ 'item-row--drag-over': dragOverIndex === i }"
+              draggable="true"
+              @dragstart="onDragStart(i)"
+              @dragover.prevent="onDragOver(i)"
+              @drop.prevent="onDrop(i)"
+              @dragend="onDragEnd"
+            >
+              <td class="col-handle">
+                <span class="drag-handle" title="Drag to reorder">
+                  <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                    <circle cx="2.5" cy="2"  r="1.3"/>
+                    <circle cx="7.5" cy="2"  r="1.3"/>
+                    <circle cx="2.5" cy="7"  r="1.3"/>
+                    <circle cx="7.5" cy="7"  r="1.3"/>
+                    <circle cx="2.5" cy="12" r="1.3"/>
+                    <circle cx="7.5" cy="12" r="1.3"/>
+                  </svg>
+                </span>
+              </td>
               <td>
                 <input
                   v-model="item.description"
@@ -222,13 +282,30 @@ const { devMode } = useDevMode()
 
 const recipients          = ref([])
 const selectedRecipientId = ref('')
-const saveRecipient       = ref(false)
 const recipient           = ref({ name:'', company:'', address:'', city_state_zip:'', email:'' })
 const lineItems           = ref([{ description:'', amount:'' }])
 const useQty              = ref(false)
 const notes               = ref('')
 const generating          = ref(false)
+const savingContact       = ref(false)
+const deletingContact     = ref(false)
 const error               = ref('')
+
+const dragIndex     = ref(null)
+const dragOverIndex = ref(null)
+
+function onDragStart(i) { dragIndex.value = i }
+function onDragOver(i)  { dragOverIndex.value = i }
+function onDragEnd()    { dragIndex.value = null; dragOverIndex.value = null }
+function onDrop(i) {
+  const from = dragIndex.value
+  if (from === null || from === i) return
+  const items = [...lineItems.value]
+  items.splice(i, 0, items.splice(from, 1)[0])
+  lineItems.value = items
+  dragIndex.value = null
+  dragOverIndex.value = null
+}
 
 watch(() => props.prefillSeed, (seed) => {
   if (!seed) return
@@ -237,7 +314,6 @@ watch(() => props.prefillSeed, (seed) => {
   if (isDirty && !confirm('Replace the current draft with this invoice?')) return
 
   selectedRecipientId.value = ''
-  saveRecipient.value       = false
   recipient.value           = { ...seed.recipient }
   notes.value               = seed.notes || ''
 
@@ -334,7 +410,6 @@ function fillTestData() {
   const preset = TEST_INVOICES[idx]
 
   selectedRecipientId.value = ''
-  saveRecipient.value = false
   recipient.value = { ...preset.recipient }
   lineItems.value = preset.items.map(item =>
     useQty.value
@@ -343,6 +418,44 @@ function fillTestData() {
   )
   notes.value = preset.notes
   addLog('success', `Invoice test data filled (${preset.recipient.name})`)
+}
+
+async function deleteContact() {
+  const r = recipients.value.find(r => r.id === selectedRecipientId.value)
+  if (!r || !confirm(`Delete ${r.name} from your contacts? This can't be undone.`)) return
+
+  deletingContact.value = true
+  const entry = addLog('pending', `Deleting ${r.name}…`)
+  try {
+    await axios.delete(`/api/recipients/${r.id}`)
+    recipients.value = recipients.value.filter(x => x.id !== r.id)
+    selectedRecipientId.value = ''
+    recipient.value = { name:'', company:'', address:'', city_state_zip:'', email:'' }
+    entry.type    = 'success'
+    entry.message = `${r.name} deleted from contacts`
+  } catch {
+    entry.type    = 'error'
+    entry.message = `Failed to delete ${r.name}`
+  } finally {
+    deletingContact.value = false
+  }
+}
+
+async function saveToContacts() {
+  savingContact.value = true
+  const entry = addLog('pending', 'Saving contact…')
+  try {
+    const { data } = await axios.post('/api/recipients', recipient.value)
+    recipients.value.push(data)
+    selectedRecipientId.value = data.id
+    entry.type    = 'success'
+    entry.message = `${data.name} saved to contacts`
+  } catch {
+    entry.type    = 'error'
+    entry.message = 'Failed to save contact'
+  } finally {
+    savingContact.value = false
+  }
 }
 
 function addItem() {
@@ -381,13 +494,6 @@ async function generate() {
   generating.value = true
   const logEntry   = addLog('pending', 'Generating PDF…')
   try {
-    if (saveRecipient.value && !selectedRecipientId.value) {
-      const { data } = await axios.post('/api/recipients', recipient.value)
-      recipients.value.push(data)
-      selectedRecipientId.value = data.id
-      saveRecipient.value = false
-    }
-
     const payload = useQty.value
       ? lineItems.value.map(i => ({
           description: i.description,
@@ -430,7 +536,23 @@ async function generate() {
 <style scoped>
 .page { max-width: 700px; }
 
-/* Recipient */
+/* Recipient select */
+.recipient-select-wrap {
+  margin-bottom: 16px;
+}
+
+.recipient-select-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #d97706;
+  margin-bottom: 6px;
+}
+
 .select-input {
   width: 100%;
   padding: 8px 11px;
@@ -450,17 +572,81 @@ async function generate() {
   box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
 }
 
-.save-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-  font-size: 13px;
-  color: #57534e;
-  cursor: pointer;
+.select-input--recipient {
+  border-left: 3px solid #d97706;
+  padding-left: 10px;
+  background: #fffdf7;
 }
 
-.check-input { cursor: pointer; accent-color: #d97706; }
+.recipient-footer {
+  margin-top: 16px;
+  min-height: 28px;
+}
+
+.saved-contact-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px 4px 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.delete-contact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: #16a34a;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  transition: opacity 0.12s, background 0.12s, color 0.12s;
+}
+
+.delete-contact-btn:hover:not(:disabled) {
+  opacity: 1;
+  background: #dcfce7;
+  color: #dc2626;
+}
+
+.delete-contact-btn:disabled { cursor: not-allowed; }
+
+.save-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: none;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  color: #78716c;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.save-contact-btn:hover:not(:disabled) {
+  border-color: #d97706;
+  color: #d97706;
+  background: #fffbeb;
+}
+
+.save-contact-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .section-header-row {
   display: flex;
@@ -472,13 +658,13 @@ async function generate() {
 .qty-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 6px;
+  padding: 6px 14px;
   border: 1.5px solid #e7e5e4;
   border-radius: 5px;
   background: #fafaf9;
   color: #78716c;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   font-family: 'Figtree', sans-serif;
   cursor: pointer;
@@ -513,11 +699,33 @@ async function generate() {
   text-align: left;
 }
 
+.col-handle { width: 28px; }
 .col-desc   { width: auto; }
 .col-qty    { width: 80px; }
 .col-rate   { width: 130px; padding-left: 12px !important; }
 .col-amount { width: 130px; padding-left: 12px !important; }
 .col-action { width: 38px; }
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 26px;
+  color: #d6d3d1;
+  cursor: grab;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+}
+
+.drag-handle:hover {
+  color: #a8a29e;
+  background: #f5f4f0;
+}
+
+.item-row--drag-over td {
+  border-top: 2px solid #d97706;
+}
 
 .amount-computed { cursor: default; }
 .computed-value {

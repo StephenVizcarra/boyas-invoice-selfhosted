@@ -1,5 +1,5 @@
 <template>
-  <div class="log-panel">
+  <div class="log-panel" :class="{ 'log-panel--collapsed': collapsed }">
     <div class="log-header">
       <span class="log-title">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -9,8 +9,13 @@
       </span>
       <span class="log-count">{{ logs.length }} {{ logs.length === 1 ? 'entry' : 'entries' }}</span>
       <button class="log-clear" @click="clearLog">Clear</button>
+      <button class="log-collapse" @click="collapsed = !collapsed" :title="collapsed ? 'Expand log' : 'Collapse log'">
+        <svg class="collapse-chevron" :class="{ 'collapse-chevron--up': !collapsed }" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
     </div>
-    <div class="log-body">
+    <div v-show="!collapsed" class="log-body">
       <div v-if="logs.length === 0" class="log-empty">No activity yet.</div>
       <div
         v-for="entry in logs"
@@ -27,9 +32,12 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useActivityLog } from '../composables/useActivityLog'
 
 const { logs, clearLog } = useActivityLog()
+
+const collapsed = ref(false)
 
 function formatTime(ts) {
   return ts.toLocaleTimeString('en-US', { hour12: false })
@@ -43,6 +51,10 @@ function formatTime(ts) {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.log-panel:not(.log-panel--collapsed) {
   height: 200px;
 }
 
@@ -53,6 +65,10 @@ function formatTime(ts) {
   padding: 8px 20px;
   border-bottom: 1px solid #292524;
   flex-shrink: 0;
+}
+
+.log-panel--collapsed .log-header {
+  border-bottom: none;
 }
 
 .log-title {
@@ -88,6 +104,34 @@ function formatTime(ts) {
 .log-clear:hover {
   border-color: #78716c;
   color: #a8a29e;
+}
+
+.log-collapse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: 1px solid #44403c;
+  border-radius: 4px;
+  color: #78716c;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.log-collapse:hover {
+  border-color: #78716c;
+  color: #a8a29e;
+}
+
+.collapse-chevron {
+  transition: transform 0.2s ease;
+}
+
+.collapse-chevron--up {
+  transform: rotate(180deg);
 }
 
 .log-body {

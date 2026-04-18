@@ -1,9 +1,18 @@
 <template>
   <div class="shell">
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'sidebar--collapsed': sidebarCollapsed }">
       <div class="brand">
         <img :src="'/logo.png'" alt="Logo" class="brand-logo">
         <span class="brand-name">Boyas Invoice</span>
+        <button
+          class="sidebar-collapse-btn"
+          @click="sidebarCollapsed = !sidebarCollapsed"
+          :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        >
+          <svg class="collapse-arrow" :class="{ 'collapse-arrow--flipped': sidebarCollapsed }" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
       </div>
 
       <nav class="nav">
@@ -12,7 +21,8 @@
           :key="tab.key"
           class="nav-card"
           :class="{ 'nav-card--active': activeTab === tab.key }"
-          @click="activeTab = tab.key"
+          :title="tab.label"
+          @click="onNavClick(tab.key)"
         >
           <span class="nav-card-icon" v-html="tab.icon"></span>
           <span class="nav-card-text">
@@ -45,13 +55,6 @@
     </aside>
 
     <div class="main">
-      <header class="topbar">
-        <div class="topbar-breadcrumb">
-          <span class="topbar-app">Boyas Invoice</span>
-          <span class="topbar-sep">/</span>
-          <span class="topbar-page">{{ activeTabLabel }}</span>
-        </div>
-      </header>
       <main class="content">
         <KeepAlive>
           <component
@@ -70,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, watch } from 'vue'
 import SenderProfile from './components/SenderProfile.vue'
 import NewInvoice from './components/NewInvoice.vue'
 import InvoiceHistory from './components/InvoiceHistory.vue'
@@ -96,7 +99,7 @@ const tabs = [
     key: 'history',
     label: 'History',
     sub: 'Previously generated',
-    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 3h6l2 3h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>',
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="6.5" cy="13" r="3.5"/><circle cx="17.5" cy="13" r="3.5"/><path d="M10 13h4"/><path d="M1 10l2.5 3"/><path d="M23 10l-2.5 3"/></svg>',
   },
 ]
 
@@ -104,7 +107,16 @@ const tabComponents = { profile: SenderProfile, invoice: NewInvoice, history: In
 
 const activeTab      = ref('profile')
 const prefillSeed    = ref(null)
-const activeTabLabel = computed(() => tabs.find(t => t.key === activeTab.value)?.label)
+const sidebarCollapsed = ref(localStorage.getItem('sidebar_collapsed') === '1')
+
+watch(sidebarCollapsed, (val) => {
+  localStorage.setItem('sidebar_collapsed', val ? '1' : '0')
+})
+
+function onNavClick(key) {
+  activeTab.value = key
+  if (sidebarCollapsed.value) sidebarCollapsed.value = false
+}
 
 function handleDuplicate(invoice) {
   prefillSeed.value = { ...invoice }
@@ -132,6 +144,13 @@ body { font-family: 'Figtree', sans-serif; }
   display: flex;
   flex-direction: column;
   border-right: 1px solid #292524;
+  transition: width 0.2s ease, min-width 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar--collapsed {
+  width: 56px;
+  min-width: 56px;
 }
 
 .brand {
@@ -140,6 +159,21 @@ body { font-family: 'Figtree', sans-serif; }
   gap: 10px;
   padding: 18px 16px 16px;
   border-bottom: 1px solid #292524;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar--collapsed .brand {
+  padding: 18px 0 16px;
+  justify-content: center;
+}
+
+.sidebar--collapsed .brand-logo {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-collapse-btn {
+  margin-left: 0;
 }
 
 .brand-logo {
@@ -155,6 +189,12 @@ body { font-family: 'Figtree', sans-serif; }
   font-weight: 700;
   color: #fafaf9;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: opacity 0.15s, width 0.2s;
+}
+
+.sidebar--collapsed .brand-name {
+  display: none;
 }
 
 .nav {
@@ -163,6 +203,11 @@ body { font-family: 'Figtree', sans-serif; }
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .nav {
+  padding: 16px 8px;
 }
 
 .nav-card {
@@ -178,6 +223,12 @@ body { font-family: 'Figtree', sans-serif; }
   text-align: left;
   font-family: 'Figtree', sans-serif;
   transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .nav-card {
+  justify-content: center;
+  padding: 14px 8px;
 }
 
 .nav-card:hover {
@@ -207,6 +258,12 @@ body { font-family: 'Figtree', sans-serif; }
   display: flex;
   flex-direction: column;
   gap: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .nav-card-text {
+  display: none;
 }
 
 .nav-card-label {
@@ -235,47 +292,47 @@ body { font-family: 'Figtree', sans-serif; }
   color: #a8a29e;
 }
 
-/* ── Main area ── */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  background: #f5f4f0;
-}
-
-.topbar {
-  height: 48px;
+/* ── Sidebar collapse button ── */
+.sidebar-collapse-btn {
   display: flex;
   align-items: center;
-  padding: 0 28px;
-  background: #ffffff;
-  border-bottom: 1px solid #e7e5e4;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
   flex-shrink: 0;
+  background: #292524;
+  border: 1px solid #3d3734;
+  border-radius: 5px;
+  color: #a8a29e;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.topbar-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+.sidebar-collapse-btn:hover {
+  background: #332e2b;
+  border-color: #57534e;
+  color: #d6d3d1;
 }
 
-.topbar-app { color: #a8a29e; font-weight: 500; }
-.topbar-sep { color: #d6d3d1; }
-.topbar-page { color: #1c1917; font-weight: 700; }
 
-.content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 32px 36px;
+.collapse-arrow {
+  transition: transform 0.2s ease;
 }
 
-/* Sidebar footer / dev toggle */
+.collapse-arrow--flipped {
+  transform: rotate(180deg);
+}
+
+/* ── Sidebar footer / dev toggle ── */
 .sidebar-footer {
   padding: 12px;
   border-top: 1px solid #292524;
   flex-shrink: 0;
+}
+
+.sidebar--collapsed .sidebar-footer {
+  padding: 12px 8px;
 }
 
 .dev-toggle-row {
@@ -284,11 +341,18 @@ body { font-family: 'Figtree', sans-serif; }
   gap: 9px;
   padding: 8px 10px;
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .dev-toggle-row {
+  justify-content: center;
+  padding: 8px 4px;
 }
 
 .dev-toggle-icon {
   display: flex;
   color: #57534e;
+  flex-shrink: 0;
 }
 
 .dev-toggle-label {
@@ -296,6 +360,12 @@ body { font-family: 'Figtree', sans-serif; }
   font-size: 12px;
   font-weight: 600;
   color: #78716c;
+  white-space: nowrap;
+}
+
+.sidebar--collapsed .dev-toggle-label,
+.sidebar--collapsed .toggle-switch {
+  display: none;
 }
 
 .toggle-switch {
@@ -324,6 +394,21 @@ body { font-family: 'Figtree', sans-serif; }
 }
 
 .toggle-switch--on .toggle-thumb { transform: translateX(13px); }
+
+/* ── Main area ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #f5f4f0;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 36px;
+}
 
 /* Log panel slide transition */
 .log-panel-enter-active,

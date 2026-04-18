@@ -2,7 +2,7 @@
   <div class="page">
     <div class="page-header">
       <h1 class="page-title">My Profile</h1>
-      <p class="page-sub">"I just need your ID, I just need your data."</p>
+      <p class="page-sub"><em>"I just need your ID, I just need your data."</em></p>
     </div>
 
     <form @submit.prevent="save" class="card">
