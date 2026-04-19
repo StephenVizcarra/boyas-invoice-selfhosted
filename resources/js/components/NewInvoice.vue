@@ -477,30 +477,59 @@ function addItem() {
 }
 function removeItem(i) { lineItems.value.splice(i, 1) }
 
+function humanizeErrors(errors) {
+  return Object.entries(errors).map(([field, messages]) => {
+    const match = field.match(/^line_items\.(\d+)\.(.+)$/)
+    if (match) return `Row ${parseInt(match[1]) + 1}: ${match[2]} is invalid.`
+    return messages[0]
+  }).join(' ')
+}
+
 async function extractError(e) {
   if (e.response?.data instanceof Blob) {
     try {
       const text = await e.response.data.text()
       const json = JSON.parse(text)
-      return json.message
-        || Object.values(json.errors ?? {}).flat().join(' ')
-        || 'Server error'
+      if (json.errors) return humanizeErrors(json.errors)
+      return json.message || 'Server error'
     } catch {
       return 'Server error'
     }
   }
-  return e.response?.data?.message
-    || Object.values(e.response?.data?.errors ?? {}).flat().join(' ')
-    || e.message
-    || 'Unknown error'
+  const data = e.response?.data
+  if (data?.errors) return humanizeErrors(data.errors)
+  return data?.message || e.message || 'Unknown error'
 }
 
 async function generate() {
   error.value = ''
-  if (!recipient.value.name) { error.value = 'Recipient name is required.'; return }
-  if (lineItems.value.some(i => !i.description)) {
-    error.value = 'All line items need a description.'
+
+  if (!recipient.value.name) {
+    error.value = 'Recipient name is required.'
     return
+  }
+
+  for (const [i, item] of lineItems.value.entries()) {
+    const row = `Row ${i + 1}`
+    if (!item.description.trim()) {
+      error.value = `${row}: description is required.`
+      return
+    }
+    if (useQty.value) {
+      if (item.qty === '' || item.qty === null || isNaN(parseFloat(item.qty)) || parseFloat(item.qty) < 0) {
+        error.value = `${row}: qty must be a number of 0 or greater.`
+        return
+      }
+      if (item.rate === '' || item.rate === null || isNaN(parseFloat(item.rate)) || parseFloat(item.rate) < 0) {
+        error.value = `${row}: rate must be a number of 0 or greater.`
+        return
+      }
+    } else {
+      if (item.amount === '' || item.amount === null || isNaN(parseFloat(item.amount)) || parseFloat(item.amount) < 0) {
+        error.value = `${row}: amount must be a number of 0 or greater.`
+        return
+      }
+    }
   }
 
   generating.value = true
@@ -508,12 +537,15 @@ async function generate() {
   try {
     const payload = useQty.value
       ? lineItems.value.map(i => ({
-          description: i.description,
-          qty:         parseFloat(i.qty) || 0,
-          rate:        parseFloat(i.rate) || 0,
-          amount:      (parseFloat(i.qty) || 0) * (parseFloat(i.rate) || 0),
+          description: i.description.trim(),
+          qty:         parseFloat(i.qty),
+          rate:        parseFloat(i.rate),
+          amount:      parseFloat(i.qty) * parseFloat(i.rate),
         }))
-      : lineItems.value
+      : lineItems.value.map(i => ({
+          description: i.description.trim(),
+          amount:      parseFloat(i.amount),
+        }))
 
     const response = await axios.post('/api/invoice/generate', {
       recipient:  recipient.value,
