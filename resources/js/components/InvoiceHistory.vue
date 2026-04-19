@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onActivated } from 'vue'
+import { ref, onActivated } from 'vue'
 import axios from 'axios'
 import InvoiceHistoryTile from './InvoiceHistoryTile.vue'
 import { useActivityLog } from '../composables/useActivityLog'
@@ -54,26 +54,33 @@ const emit = defineEmits(['duplicate'])
 const { addLog } = useActivityLog()
 const { clearThumbnailCache } = usePdfThumbnail()
 
-const invoices = ref([])
-const loading  = ref(true)
+const invoices   = ref([])
+const loading    = ref(true)
+const hasFetched = ref(false)
 
 async function fetchInvoices() {
-  loading.value = true
-  const logEntry = addLog('pending', 'Loading invoice history…')
+  const silent = hasFetched.value
+  if (!silent) loading.value = true
+
+  const logEntry = silent ? null : addLog('pending', 'Loading invoice history…')
   try {
     const { data } = await axios.get('/api/invoices')
-    invoices.value = data
-    logEntry.type    = 'success'
-    logEntry.message = `Loaded ${data.length} invoice${data.length !== 1 ? 's' : ''}`
+    invoices.value   = data
+    hasFetched.value = true
+    if (logEntry) {
+      logEntry.type    = 'success'
+      logEntry.message = `Loaded ${data.length} invoice${data.length !== 1 ? 's' : ''}`
+    }
   } catch {
-    logEntry.type    = 'error'
-    logEntry.message = 'Failed to load invoice history'
+    if (logEntry) {
+      logEntry.type    = 'error'
+      logEntry.message = 'Failed to load invoice history'
+    }
   } finally {
     loading.value = false
   }
 }
 
-onMounted(fetchInvoices)
 onActivated(fetchInvoices)
 
 async function downloadInvoice(invoice) {
