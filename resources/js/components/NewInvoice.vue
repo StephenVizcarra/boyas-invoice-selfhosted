@@ -227,14 +227,24 @@
     <!-- Notes -->
     <div class="card" style="margin-bottom: 20px;">
       <div class="card-body">
-        <h2 class="section-label">
-          Notes <span class="section-label-opt">(optional)</span>
-        </h2>
+        <div class="section-header-row">
+          <h2 class="section-label" style="margin-bottom:0;">
+            Notes <span class="section-label-opt">(optional)</span>
+          </h2>
+          <span v-if="defaultNotes" class="notes-default-indicator">
+            Default note
+            <button type="button" class="notes-default-clear" @click="defaultNotes = ''" title="Clear default">Clear</button>
+          </span>
+          <button v-else-if="notes" type="button" class="notes-set-default" @click="defaultNotes = notes">
+            Set as default
+          </button>
+        </div>
         <textarea
           v-model="notes"
           class="notes-input"
           placeholder="Payment terms, thank you note, bank details…"
           rows="3"
+          style="margin-top: 10px;"
         ></textarea>
       </div>
     </div>
@@ -270,6 +280,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useActivityLog } from '../composables/useActivityLog'
 import { useDevMode } from '../composables/useDevMode'
+import { useDefaultNotes } from '../composables/useDefaultNotes'
 
 const props = defineProps({
   prefillSeed: { type: Object, default: null },
@@ -279,13 +290,14 @@ const emit = defineEmits(['prefill-consumed'])
 
 const { addLog } = useActivityLog()
 const { devMode } = useDevMode()
+const { defaultNotes } = useDefaultNotes()
 
 const recipients          = ref([])
 const selectedRecipientId = ref('')
 const recipient           = ref({ name:'', company:'', address:'', city_state_zip:'', email:'' })
 const lineItems           = ref([{ description:'', amount:'' }])
 const useQty              = ref(false)
-const notes               = ref('')
+const notes               = ref(defaultNotes.value || '')
 const generating          = ref(false)
 const savingContact       = ref(false)
 const deletingContact     = ref(false)
@@ -521,7 +533,7 @@ async function generate() {
     URL.revokeObjectURL(url)
 
     lineItems.value = [useQty.value ? { description:'', qty:'', rate:'' } : { description:'', amount:'' }]
-    notes.value     = ''
+    notes.value     = defaultNotes.value || ''
   } catch (e) {
     const msg        = await extractError(e)
     logEntry.type    = 'error'
@@ -854,6 +866,43 @@ async function generate() {
 }
 
 /* Notes */
+.notes-default-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d97706;
+}
+
+.notes-default-clear {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  color: #a8a29e;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s;
+}
+
+.notes-default-clear:hover { color: #dc2626; }
+
+.notes-set-default {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  color: #a8a29e;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.12s;
+}
+
+.notes-set-default:hover { color: #d97706; }
+
 .notes-input {
   width: 100%;
   padding: 10px 12px;
