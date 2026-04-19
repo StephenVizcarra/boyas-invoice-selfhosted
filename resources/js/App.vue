@@ -32,26 +32,6 @@
         </button>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="dev-toggle-row">
-          <span class="dev-toggle-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-            </svg>
-          </span>
-          <span class="dev-toggle-label">Developer Mode</span>
-          <button
-            class="toggle-switch"
-            :class="{ 'toggle-switch--on': devMode }"
-            @click="devMode = !devMode"
-            :aria-pressed="devMode"
-            aria-label="Toggle developer mode"
-          >
-            <span class="toggle-thumb"></span>
-          </button>
-        </div>
-      </div>
-
     </aside>
 
     <div class="main">
@@ -77,6 +57,7 @@ import { ref, watch } from 'vue'
 import SenderProfile from './components/SenderProfile.vue'
 import NewInvoice from './components/NewInvoice.vue'
 import InvoiceHistory from './components/InvoiceHistory.vue'
+import Settings from './components/Settings.vue'
 import DevLogPanel from './components/DevLogPanel.vue'
 import { useDevMode } from './composables/useDevMode'
 
@@ -101,9 +82,15 @@ const tabs = [
     sub: 'Previously generated',
     icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="6.5" cy="13" r="3.5"/><circle cx="17.5" cy="13" r="3.5"/><path d="M10 13h4"/><path d="M1 10l2.5 3"/><path d="M23 10l-2.5 3"/></svg>',
   },
+  {
+    key: 'settings',
+    label: 'Settings',
+    sub: 'Preferences',
+    icon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  },
 ]
 
-const tabComponents = { profile: SenderProfile, invoice: NewInvoice, history: InvoiceHistory }
+const tabComponents = { profile: SenderProfile, invoice: NewInvoice, history: InvoiceHistory, settings: Settings }
 
 const activeTab      = ref('profile')
 const prefillSeed    = ref(null)
@@ -324,76 +311,6 @@ body { font-family: 'Figtree', sans-serif; }
   transform: rotate(180deg);
 }
 
-/* ── Sidebar footer / dev toggle ── */
-.sidebar-footer {
-  padding: 12px;
-  border-top: 1px solid #292524;
-  flex-shrink: 0;
-}
-
-.sidebar--collapsed .sidebar-footer {
-  padding: 12px 8px;
-}
-
-.dev-toggle-row {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.sidebar--collapsed .dev-toggle-row {
-  justify-content: center;
-  padding: 8px 4px;
-}
-
-.dev-toggle-icon {
-  display: flex;
-  color: #57534e;
-  flex-shrink: 0;
-}
-
-.dev-toggle-label {
-  flex: 1;
-  font-size: 12px;
-  font-weight: 600;
-  color: #78716c;
-  white-space: nowrap;
-}
-
-.sidebar--collapsed .dev-toggle-label,
-.sidebar--collapsed .toggle-switch {
-  display: none;
-}
-
-.toggle-switch {
-  width: 30px;
-  height: 17px;
-  background: #44403c;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-
-.toggle-switch--on { background: #d97706; }
-
-.toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 13px;
-  height: 13px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.toggle-switch--on .toggle-thumb { transform: translateX(13px); }
 
 /* ── Main area ── */
 .main {
