@@ -69,6 +69,9 @@ COPY --from=vendor   /app/vendor       ./vendor
 COPY docker/nginx.conf      /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 
+# Stash migrations outside the volume mount so the entrypoint can sync them
+RUN cp -r database/migrations /opt/migrations
+
 # Entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

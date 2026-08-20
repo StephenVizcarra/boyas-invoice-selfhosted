@@ -14,11 +14,6 @@ fi
 sed -i 's|^APP_ENV=.*|APP_ENV=production|' .env
 sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env
 sed -i 's|^LOG_LEVEL=.*|LOG_LEVEL=error|' .env
-# This project only has the 3 custom app migrations — the default Laravel
-# migrations for sessions/cache/jobs tables were never added. Switch both
-# drivers to file-based so no extra DB tables are needed.
-sed -i 's|^SESSION_DRIVER=.*|SESSION_DRIVER=file|' .env
-sed -i 's|^CACHE_STORE=.*|CACHE_STORE=file|' .env
 
 # ── 2. App key ───────────────────────────────────────────────────────────────
 # If APP_KEY is passed as a Docker env var, write it into .env so artisan can
@@ -42,23 +37,27 @@ if [ ! -f database/database.sqlite ]; then
 fi
 
 # ── 4. Migrations ────────────────────────────────────────────────────────────
+# The boyas_database volume shadows database/, so migration files baked into
+# the image are invisible after first boot. Sync from /opt/migrations (a copy
+# made at build time outside the volume mount) to pick up any new migrations.
+cp -r /opt/migrations/* database/migrations/ 2>/dev/null || true
 php artisan migrate --force --no-interaction
 echo "[entrypoint] Migrations complete"
 
-# ── 5. Storage symlink ───────────────────────────────────────────────────────
-mkdir -p storage/app/public
+# ── 5. Storage directories and symlink ───────────────────────────────────────
+mkdir -p storage/app/public storage/app/private/invoices
 php artisan storage:link --force --no-interaction 2>/dev/null || true
 
-# ── 6. Permissions (important if volumes are mounted as root) ────────────────
-chown -R www-data:www-data storage bootstrap/cache database
-chmod -R 775 storage bootstrap/cache
-chmod 664 database/database.sqlite
-
-# ── 7. Laravel caches ────────────────────────────────────────────────────────
+# ── 6. Laravel caches ────────────────────────────────────────────────────────
 php artisan config:cache  --no-interaction
 php artisan route:cache   --no-interaction
 php artisan view:cache    --no-interaction
 echo "[entrypoint] Caches warmed"
+
+# ── 7. Permissions (runs AFTER cache so generated files are included) ────────
+chown -R www-data:www-data storage bootstrap/cache database
+chmod -R 775 storage bootstrap/cache
+chmod 664 database/database.sqlite
 
 # ── 8. Hand off to Supervisor ────────────────────────────────────────────────
 echo "[entrypoint] Starting services..."

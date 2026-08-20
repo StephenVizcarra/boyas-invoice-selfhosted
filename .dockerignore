@@ -36,3 +36,7 @@ bootstrap/cache/
 .vscode/
 *.DS_Store
 Thumbs.db
+
+# Other tooling
+.venv/
+.claude/
