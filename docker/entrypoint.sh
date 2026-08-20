@@ -30,6 +30,10 @@ else
     fi
 fi
 
+# Export the final key into the shell environment so config:cache sees it
+# instead of the empty APP_KEY="" that Docker Compose sets when no key is provided.
+export APP_KEY=$(grep -E '^APP_KEY=' .env | cut -d= -f2-)
+
 # ── 3. SQLite database ───────────────────────────────────────────────────────
 if [ ! -f database/database.sqlite ]; then
     touch database/database.sqlite
