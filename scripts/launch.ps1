@@ -64,8 +64,7 @@ Write-Host "  [2/3] Starting Boyas Invoice..."
 $repoRoot = Split-Path $PSScriptRoot -Parent
 Set-Location $repoRoot
 
-docker compose pull
-docker compose up -d
+docker compose up -d --build
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
