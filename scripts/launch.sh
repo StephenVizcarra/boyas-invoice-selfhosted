@@ -44,8 +44,7 @@ echo " ready."
 # --- 2. First-run warning ---
 if ! docker ps -a --filter "name=boyas_invoice" --format "{{.Names}}" | grep -q "boyas_invoice"; then
     echo ""
-    echo "  First launch: building the app. This takes about 3-5 minutes."
-    echo "  Stretch your loegs. You only wait this long once."
+    echo "  First launch: downloading the app now. This should only take a minute."
     echo ""
 fi
 
@@ -54,7 +53,8 @@ echo "  [2/3] Starting Boyas Invoice..."
 
 cd "$(dirname "$0")/.."
 
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 
 if [ $? -ne 0 ]; then
     echo ""

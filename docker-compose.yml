@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/stephenvizcarra/boyas-invoice:latest
     container_name: boyas_invoice
     ports:
       - "8080:80"
