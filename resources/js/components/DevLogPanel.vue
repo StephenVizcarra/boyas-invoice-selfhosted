@@ -46,8 +46,8 @@ function formatTime(ts) {
 
 <style scoped>
 .log-panel {
-  background: #1c1917;
-  border-top: 1px solid #292524;
+  background: var(--sidebar-bg);
+  border-top: 1px solid var(--sidebar-border);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -63,7 +63,7 @@ function formatTime(ts) {
   align-items: center;
   gap: 10px;
   padding: 8px 20px;
-  border-bottom: 1px solid #292524;
+  border-bottom: 1px solid var(--sidebar-border);
   flex-shrink: 0;
 }
 
@@ -79,20 +79,20 @@ function formatTime(ts) {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #57534e;
+  color: var(--sidebar-icon);
 }
 
 .log-count {
   flex: 1;
   font-size: 11px;
-  color: #44403c;
+  color: var(--sidebar-toggle-off);
 }
 
 .log-clear {
   background: none;
-  border: 1px solid #44403c;
+  border: 1px solid var(--sidebar-toggle-off);
   border-radius: 4px;
-  color: #78716c;
+  color: var(--sidebar-icon);
   font-size: 11px;
   font-weight: 600;
   font-family: 'Figtree', sans-serif;
@@ -102,8 +102,8 @@ function formatTime(ts) {
 }
 
 .log-clear:hover {
-  border-color: #78716c;
-  color: #a8a29e;
+  border-color: var(--sidebar-icon);
+  color: var(--sidebar-text);
 }
 
 .log-collapse {
@@ -113,17 +113,17 @@ function formatTime(ts) {
   width: 22px;
   height: 22px;
   background: none;
-  border: 1px solid #44403c;
+  border: 1px solid var(--sidebar-toggle-off);
   border-radius: 4px;
-  color: #78716c;
+  color: var(--sidebar-icon);
   cursor: pointer;
   flex-shrink: 0;
   transition: border-color 0.12s, color 0.12s;
 }
 
 .log-collapse:hover {
-  border-color: #78716c;
-  color: #a8a29e;
+  border-color: var(--sidebar-icon);
+  color: var(--sidebar-text);
 }
 
 .collapse-chevron {
@@ -142,7 +142,7 @@ function formatTime(ts) {
 
 .log-empty {
   font-size: 12px;
-  color: #44403c;
+  color: var(--sidebar-toggle-off);
   padding: 8px 0;
 }
 
@@ -153,13 +153,13 @@ function formatTime(ts) {
   padding: 4px 0;
   font-size: 12px;
   font-family: 'Figtree', monospace;
-  border-bottom: 1px solid #292524;
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
 .log-entry:last-child { border-bottom: none; }
 
 .log-ts {
-  color: #57534e;
+  color: var(--sidebar-icon);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
   font-size: 11px;
@@ -170,19 +170,19 @@ function formatTime(ts) {
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: #57534e;
+  background: var(--sidebar-icon);
 }
 
-.log-entry--pending .log-dot { background: #d97706; }
-.log-entry--success .log-dot { background: #16a34a; }
-.log-entry--error   .log-dot { background: #dc2626; }
+.log-entry--pending .log-dot { background: var(--accent); }
+.log-entry--success .log-dot { background: var(--success); }
+.log-entry--error   .log-dot { background: var(--danger); }
 
 .log-msg {
-  color: #a8a29e;
+  color: var(--sidebar-text);
   font-size: 12px;
 }
 
-.log-entry--pending .log-msg { color: #d97706; }
-.log-entry--success .log-msg { color: #a8a29e; }
-.log-entry--error   .log-msg { color: #fca5a5; }
+.log-entry--pending .log-msg { color: var(--accent); }
+.log-entry--success .log-msg { color: var(--sidebar-text); }
+.log-entry--error   .log-msg { color: var(--danger-border); }
 </style>
