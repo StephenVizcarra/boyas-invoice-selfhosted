@@ -44,8 +44,7 @@ echo " ready."
 # --- 2. First-run warning ---
 if ! docker ps -a --filter "name=boyas_invoice" --format "{{.Names}}" | grep -q "boyas_invoice"; then
     echo ""
-    echo "  First launch: building the app. This takes about 3-5 minutes."
-    echo "  Stretch your loegs. You only wait this long once."
+    echo "  First launch detected! Please stretch your legs, grab a snack, and allow me to build the app. This will take a few minutes."
     echo ""
 fi
 
@@ -59,7 +58,7 @@ docker compose up -d --build
 if [ $? -ne 0 ]; then
     echo ""
     echo "  Failed to start the app."
-    echo "  Try running the launcher again. If the problem persists, contact the author."
+    echo "  Try running the launcher again. If the problem persists, contact the app developer for help."
     echo ""
     read -p "  Press Enter to exit"
     exit 1

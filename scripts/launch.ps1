@@ -54,8 +54,7 @@ $hasContainer = docker ps -a --filter "name=boyas_invoice" --format "{{.Names}}"
 
 if (-not $hasContainer) {
     Write-Host ""
-    Write-Host "  First time launch detected! I'm building the app for your dumb arse. This will take a few minutes." -ForegroundColor Yellow
-    Write-Host "  Take your fat hits... you only wait this long once..." -ForegroundColor DarkGray
+    Write-Host "  First time launch detected! Downloading the app now. This should only take a minute." -ForegroundColor Yellow
     Write-Host ""
 }
 
