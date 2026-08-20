@@ -26,7 +26,7 @@ After installing, open **Docker Desktop** from your Start menu and let it finish
 (there's a loading animation in the taskbar). You'll see a dashboard appear — that means
 it's ready. You can close the window; Docker keeps running in the background.
 
-> **Note:** If you see a message about enabling virtualization in BIOS, contact author —
+> **Note:** If you see a message about enabling virtualization in BIOS, contact developer —
 > this is a one-time setting that takes about 2 minutes to enable.
 
 ---

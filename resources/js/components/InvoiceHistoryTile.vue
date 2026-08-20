@@ -124,8 +124,8 @@ function formatDate(iso) {
 
 <style scoped>
 .tile {
-  background: #ffffff;
-  border: 1px solid #e7e5e4;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -135,7 +135,7 @@ function formatDate(iso) {
 
 .tile:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border-color: #d6d3d1;
+  border-color: var(--border-muted);
 }
 
 /* Thumbnail */
@@ -143,8 +143,8 @@ function formatDate(iso) {
   position: relative;
   width: 100%;
   aspect-ratio: 210 / 297;
-  background: #f9f8f6;
-  border-bottom: 1px solid #e7e5e4;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -158,7 +158,7 @@ function formatDate(iso) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #a8a29e;
+  color: var(--text-subtle);
   font-size: 11px;
   font-weight: 500;
 }
@@ -201,22 +201,22 @@ function formatDate(iso) {
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: #ffffff;
+  background: var(--bg-card);
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  color: #1c1917;
+  color: var(--text-primary);
   transition: background 0.12s, color 0.12s, transform 0.1s;
 }
 
 .tile-action:hover {
-  background: #f5f4f0;
+  background: var(--bg-page);
   transform: scale(1.05);
 }
 
 .tile-action--danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 /* Metadata */
@@ -227,7 +227,7 @@ function formatDate(iso) {
 .tile-number {
   font-size: 12px;
   font-weight: 700;
-  color: #d97706;
+  color: var(--accent);
   letter-spacing: 0.02em;
   margin-bottom: 3px;
 }
@@ -235,7 +235,7 @@ function formatDate(iso) {
 .tile-recipient {
   font-size: 13px;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -251,11 +251,11 @@ function formatDate(iso) {
 .tile-total {
   font-size: 13px;
   font-weight: 700;
-  color: #1c1917;
+  color: var(--text-primary);
 }
 
 .tile-date {
   font-size: 11.5px;
-  color: #a8a29e;
+  color: var(--text-subtle);
 }
 </style>

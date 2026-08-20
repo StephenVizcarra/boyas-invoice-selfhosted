@@ -249,18 +249,18 @@ async function save() {
 <style scoped>
 .page { max-width: 620px; }
 
-.card-divider { height: 1px; background: #f5f4f0; }
+.card-divider { height: 1px; background: var(--border-subtle); }
 
 .section-label { margin-bottom: 16px; }
 
 /* Logo */
 .logo-dropzone {
-  border: 1.5px dashed #d6d3d1;
+  border: 1.5px dashed var(--border-muted);
   border-radius: 8px;
   padding: 30px 20px;
   text-align: center;
   cursor: pointer;
-  background: #fafaf9;
+  background: var(--bg-input);
   min-height: 110px;
   display: flex;
   flex-direction: column;
@@ -271,14 +271,14 @@ async function save() {
 }
 
 .logo-dropzone:hover {
-  border-color: #d97706;
-  background: #fffbeb;
+  border-color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .logo-dropzone--filled {
   border-style: solid;
-  border-color: #e7e5e4;
-  background: #fff;
+  border-color: var(--border);
+  background: var(--bg-card);
   padding: 16px;
 }
 
@@ -286,30 +286,30 @@ async function save() {
   cursor: default;
   opacity: 0.65;
   border-style: solid;
-  border-color: #e7e5e4;
+  border-color: var(--border);
 }
 
 .logo-dropzone--uploading:hover {
-  border-color: #e7e5e4;
-  background: #fafaf9;
+  border-color: var(--border);
+  background: var(--bg-input);
 }
 
 .logo-dropzone--error {
   border-style: solid;
-  border-color: #fca5a5;
-  background: #fef2f2;
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
 }
 
 .logo-dropzone--error:hover {
-  border-color: #dc2626;
-  background: #fef2f2;
+  border-color: var(--danger);
+  background: var(--danger-bg);
 }
 
-.logo-drop-icon { color: #c4bfbb; margin-bottom: 2px; }
-.logo-drop-icon--error { color: #dc2626; margin-bottom: 2px; }
-.logo-drop-text { font-size: 13px; font-weight: 500; color: #78716c; }
-.logo-drop-text--error { color: #dc2626; }
-.logo-drop-hint { font-size: 11.5px; color: #c4bfbb; }
+.logo-drop-icon { color: var(--text-faint); margin-bottom: 2px; }
+.logo-drop-icon--error { color: var(--danger); margin-bottom: 2px; }
+.logo-drop-text { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+.logo-drop-text--error { color: var(--danger); }
+.logo-drop-hint { font-size: 11.5px; color: var(--text-faint); }
 
 .logo-preview { max-height: 72px; max-width: 220px; object-fit: contain; }
 
@@ -318,7 +318,7 @@ async function save() {
   background: none;
   border: none;
   font-size: 12px;
-  color: #dc2626;
+  color: var(--danger);
   cursor: pointer;
   font-family: 'Figtree', sans-serif;
   padding: 2px 0;
@@ -328,8 +328,8 @@ async function save() {
 /* Footer */
 .card-footer {
   padding: 16px 24px;
-  background: #fafaf9;
-  border-top: 1px solid #f5f4f0;
+  background: var(--bg-input);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -341,7 +341,7 @@ async function save() {
   gap: 5px;
   font-size: 13px;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--success);
 }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
