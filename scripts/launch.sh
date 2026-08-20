@@ -53,7 +53,8 @@ echo "  [2/3] Starting Boyas Invoice..."
 
 cd "$(dirname "$0")/.."
 
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 
 if [ $? -ne 0 ]; then
     echo ""
