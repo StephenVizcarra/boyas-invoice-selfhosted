@@ -666,26 +666,26 @@ function sendEmail() {
 .select-input {
   width: 100%;
   padding: 8px 11px;
-  border: 1.5px solid #e7e5e4;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   font-family: 'Figtree', sans-serif;
-  color: #1c1917;
-  background: #fafaf9;
+  color: var(--text-primary);
+  background: var(--bg-input);
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .select-input:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .select-input--recipient {
-  border-left: 3px solid #d97706;
+  border-left: 3px solid var(--accent);
   padding-left: 10px;
-  background: #fffdf7;
+  background: var(--accent-bg-soft);
 }
 
 .recipient-footer {
@@ -770,10 +770,10 @@ function sendEmail() {
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border: 1.5px solid #e7e5e4;
+  border: 1.5px solid var(--border);
   border-radius: 5px;
-  background: #fafaf9;
-  color: #78716c;
+  background: var(--bg-input);
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
   font-family: 'Figtree', sans-serif;
@@ -782,14 +782,14 @@ function sendEmail() {
 }
 
 .qty-toggle:hover {
-  border-color: #d97706;
-  color: #d97706;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .qty-toggle--on {
-  border-color: #d97706;
-  background: #fffbeb;
-  color: #d97706;
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 /* Line items */
@@ -1004,12 +1004,12 @@ function sendEmail() {
 .notes-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #e7e5e4;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   font-family: 'Figtree', sans-serif;
-  color: #1c1917;
-  background: #fafaf9;
+  color: var(--text-primary);
+  background: var(--bg-input);
   resize: vertical;
   min-height: 80px;
   outline: none;
@@ -1018,12 +1018,12 @@ function sendEmail() {
 }
 
 .notes-input:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
-  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  background: var(--bg-card);
 }
 
-.notes-input::placeholder { color: #c4bfbb; }
+.notes-input::placeholder { color: var(--text-faint); }
 
 /* Actions */
 .actions {
