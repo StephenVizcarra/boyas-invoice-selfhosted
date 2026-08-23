@@ -860,24 +860,25 @@ function sendEmail() {
   padding: 7px 9px;
   font-size: 14px;
   font-family: 'Figtree', sans-serif;
-  color: #1c1917;
+  color: var(--text-primary);
   background: transparent;
   outline: none;
   transition: border-color 0.13s, background 0.13s;
+  color-scheme: light dark;
 }
 
 .table-input:hover {
-  border-color: #e7e5e4;
-  background: #fafaf9;
+  border-color: var(--border);
+  background: var(--bg-input);
 }
 
 .table-input:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217,119,6,0.1);
-  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  background: var(--bg-card);
 }
 
-.table-input::placeholder { color: #c4bfbb; }
+.table-input::placeholder { color: var(--text-faint); }
 
 .amount-wrap {
   display: flex;
@@ -887,7 +888,7 @@ function sendEmail() {
 
 .amount-prefix {
   font-size: 14px;
-  color: #a8a29e;
+  color: var(--text-subtle);
   flex-shrink: 0;
   margin-right: 2px;
 }
@@ -1043,7 +1044,7 @@ function sendEmail() {
 .email-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1052,9 +1053,9 @@ function sendEmail() {
 }
 
 .email-modal {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
@@ -1068,13 +1069,13 @@ function sendEmail() {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #f5f4f0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .email-modal-title {
   font-size: 16px;
   font-weight: 700;
-  color: #1c1917;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -1087,14 +1088,14 @@ function sendEmail() {
   border: none;
   background: none;
   border-radius: 6px;
-  color: #a8a29e;
+  color: var(--text-subtle);
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
 }
 
 .email-modal-close:hover {
-  background: #f5f4f0;
-  color: #1c1917;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
 }
 
 .email-modal-body {
@@ -1114,38 +1115,38 @@ function sendEmail() {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #57534e;
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
 .email-field-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #e7e5e4;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   font-family: 'Figtree', sans-serif;
-  color: #1c1917;
-  background: #fafaf9;
+  color: var(--text-primary);
+  background: var(--bg-input);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .email-field-input:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
-  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  background: var(--bg-card);
 }
 
 .email-field-textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1.5px solid #e7e5e4;
+  border: 1.5px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
   font-family: 'Figtree', sans-serif;
-  color: #1c1917;
-  background: #fafaf9;
+  color: var(--text-primary);
+  background: var(--bg-input);
   outline: none;
   resize: vertical;
   min-height: 120px;
@@ -1154,9 +1155,9 @@ function sendEmail() {
 }
 
 .email-field-textarea:focus {
-  border-color: #d97706;
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
-  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  background: var(--bg-card);
 }
 
 .email-modal-footer {
@@ -1165,7 +1166,7 @@ function sendEmail() {
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 20px;
-  border-top: 1px solid #f5f4f0;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .btn-secondary {
@@ -1173,19 +1174,19 @@ function sendEmail() {
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  border: 1.5px solid #e7e5e4;
+  border: 1.5px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg-card);
   font-size: 14px;
   font-weight: 600;
   font-family: 'Figtree', sans-serif;
-  color: #57534e;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
 
 .btn-secondary:hover {
-  border-color: #d6d3d1;
-  background: #fafaf9;
+  border-color: var(--border-muted);
+  background: var(--bg-input);
 }
 </style>
