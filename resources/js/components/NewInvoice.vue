@@ -273,6 +273,50 @@
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
   </div>
+
+  <!-- Email Modal -->
+  <Teleport to="body">
+    <div v-if="showEmailModal" class="email-modal-overlay" @click.self="closeEmailModal">
+      <div class="email-modal">
+        <div class="email-modal-header">
+          <h2 class="email-modal-title">Send Invoice</h2>
+          <button type="button" class="email-modal-close" @click="closeEmailModal" title="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="email-modal-body">
+          <div class="email-field">
+            <label class="email-field-label">To</label>
+            <input v-model="emailTo" type="email" class="email-field-input" placeholder="recipient@example.com">
+          </div>
+
+          <div class="email-field">
+            <label class="email-field-label">Subject</label>
+            <input v-model="emailSubject" type="text" class="email-field-input">
+          </div>
+
+          <div class="email-field">
+            <label class="email-field-label">Message</label>
+            <textarea v-model="emailBody" class="email-field-textarea" rows="6"></textarea>
+          </div>
+        </div>
+
+        <div class="email-modal-footer">
+          <button type="button" class="btn-secondary" @click="closeEmailModal">Close</button>
+          <button type="button" class="btn-primary" @click="sendEmail">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Send via Email
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -305,6 +349,12 @@ const error               = ref('')
 
 const dragIndex     = ref(null)
 const dragOverIndex = ref(null)
+
+const showEmailModal        = ref(false)
+const generatedInvoiceNumber = ref('')
+const emailTo               = ref('')
+const emailSubject          = ref('')
+const emailBody             = ref('')
 
 function onDragStart(i) { dragIndex.value = i }
 function onDragOver(i)  { dragOverIndex.value = i }
@@ -564,6 +614,12 @@ async function generate() {
     link.click()
     URL.revokeObjectURL(url)
 
+    generatedInvoiceNumber.value = invoiceNumber
+    emailTo.value      = recipient.value.email || ''
+    emailSubject.value = `Invoice ${invoiceNumber}`
+    emailBody.value    = `Hi ${recipient.value.name},\n\nPlease see the attached invoice ${invoiceNumber} below .\n\nThanks again,\n\n<Your name here>`
+    showEmailModal.value = true
+
     lineItems.value = [useQty.value ? { description:'', qty:'', rate:'' } : { description:'', amount:'' }]
     notes.value     = defaultNotes.value || ''
   } catch (e) {
@@ -574,6 +630,16 @@ async function generate() {
   } finally {
     generating.value = false
   }
+}
+
+function closeEmailModal() {
+  showEmailModal.value = false
+}
+
+function sendEmail() {
+  const mailto = `mailto:${encodeURIComponent(emailTo.value)}?subject=${encodeURIComponent(emailSubject.value)}&body=${encodeURIComponent(emailBody.value)}`
+  window.open(mailto, '_blank')
+  closeEmailModal()
 }
 </script>
 
@@ -971,5 +1037,155 @@ async function generate() {
   font-size: 13px;
   color: #dc2626;
   font-weight: 500;
+}
+
+/* Email Modal */
+.email-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.email-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.email-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f5f4f0;
+}
+
+.email-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0;
+}
+
+.email-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  color: #a8a29e;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.email-modal-close:hover {
+  background: #f5f4f0;
+  color: #1c1917;
+}
+
+.email-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.email-field {
+  margin-bottom: 16px;
+}
+
+.email-field:last-child {
+  margin-bottom: 0;
+}
+
+.email-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #57534e;
+  margin-bottom: 6px;
+}
+
+.email-field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Figtree', sans-serif;
+  color: #1c1917;
+  background: #fafaf9;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.email-field-input:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+  background: #fff;
+}
+
+.email-field-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Figtree', sans-serif;
+  color: #1c1917;
+  background: #fafaf9;
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.email-field-textarea:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+  background: #fff;
+}
+
+.email-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #f5f4f0;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Figtree', sans-serif;
+  color: #57534e;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.btn-secondary:hover {
+  border-color: #d6d3d1;
+  background: #fafaf9;
 }
 </style>
