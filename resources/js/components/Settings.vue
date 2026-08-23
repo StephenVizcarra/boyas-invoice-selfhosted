@@ -7,7 +7,25 @@
 
     <div class="card settings-card">
       <div class="card-body">
-        <h2 class="section-label">Developer</h2>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Theme</span>
+            <span class="setting-sub">Switch between light and dark mode.</span>
+          </div>
+          <div class="theme-options">
+            <label class="theme-option" :class="{ 'theme-option--active': theme === 'light' }">
+              <input type="radio" v-model="theme" value="light" class="sr-only">
+              <span>Light</span>
+            </label>
+            <label class="theme-option" :class="{ 'theme-option--active': theme === 'dark' }">
+              <input type="radio" v-model="theme" value="dark" class="sr-only">
+              <span>Dark</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-divider"></div>
+
         <div class="setting-row">
           <div class="setting-info">
             <span class="setting-label">Developer Mode</span>
@@ -30,8 +48,10 @@
 
 <script setup>
 import { useDevMode } from '../composables/useDevMode'
+import { useTheme } from '../composables/useTheme'
 
 const { devMode } = useDevMode()
+const { theme } = useTheme()
 </script>
 
 <style scoped>
@@ -56,18 +76,18 @@ const { devMode } = useDevMode()
 .setting-label {
   font-size: 14px;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--text-primary);
 }
 
 .setting-sub {
   font-size: 13px;
-  color: #78716c;
+  color: var(--text-muted);
 }
 
 .toggle-switch {
   width: 36px;
   height: 20px;
-  background: #d6d3d1;
+  background: var(--border-muted);
   border: none;
   border-radius: 999px;
   cursor: pointer;
@@ -76,7 +96,7 @@ const { devMode } = useDevMode()
   flex-shrink: 0;
 }
 
-.toggle-switch--on { background: #d97706; }
+.toggle-switch--on { background: var(--accent); }
 
 .toggle-thumb {
   position: absolute;
@@ -84,11 +104,57 @@ const { devMode } = useDevMode()
   left: 3px;
   width: 14px;
   height: 14px;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 50%;
   transition: transform 0.2s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
 .toggle-switch--on .toggle-thumb { transform: translateX(16px); }
+
+.setting-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 16px 0;
+}
+
+.theme-options {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.theme-option {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.theme-option:hover {
+  color: var(--text-primary);
+}
+
+.theme-option--active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
 </style>
