@@ -23,7 +23,15 @@
         <div class="field-grid">
           <div class="field">
             <label class="field-label">Name <span class="required">*</span></label>
-            <input v-model="recipient.name" type="text" required placeholder="Recipient name" class="field-input">
+            <input
+              v-model="recipient.name"
+              type="text"
+              required
+              placeholder="Recipient name"
+              class="field-input"
+              :class="{ 'field-error': errorFields.recipientName }"
+              @input="clearFieldError('recipientName')"
+            >
           </div>
           <div class="field">
             <label class="field-label">Company</label>
@@ -143,6 +151,8 @@
                   type="text"
                   placeholder="Service or product description"
                   class="table-input"
+                  :class="{ 'field-error': errorFields.lineItems?.[i]?.description }"
+                  @input="clearLineItemError(i, 'description')"
                 >
               </td>
               <template v-if="useQty">
@@ -154,6 +164,8 @@
                     min="0"
                     placeholder="1"
                     class="table-input"
+                    :class="{ 'field-error': errorFields.lineItems?.[i]?.qty }"
+                    @input="clearLineItemError(i, 'qty')"
                     style="text-align: right;"
                   >
                 </td>
@@ -167,6 +179,8 @@
                       min="0"
                       placeholder="0.00"
                       class="table-input amount-input"
+                      :class="{ 'field-error': errorFields.lineItems?.[i]?.rate }"
+                      @input="clearLineItemError(i, 'rate')"
                     >
                   </div>
                 </td>
@@ -188,6 +202,8 @@
                       min="0"
                       placeholder="0.00"
                       class="table-input amount-input"
+                      :class="{ 'field-error': errorFields.lineItems?.[i]?.amount }"
+                      @input="clearLineItemError(i, 'amount')"
                     >
                   </div>
                 </td>
@@ -346,6 +362,7 @@ const generating          = ref(false)
 const savingContact       = ref(false)
 const deletingContact     = ref(false)
 const error               = ref('')
+const errorFields         = ref({})
 
 const dragIndex     = ref(null)
 const dragOverIndex = ref(null)
@@ -407,16 +424,22 @@ const total = computed(() => {
 
 function toggleQty() {
   if (useQty.value) {
-    lineItems.value = lineItems.value.map(item => ({
-      description: item.description,
-      amount:      ((parseFloat(item.qty) || 0) * (parseFloat(item.rate) || 0)).toFixed(2),
-    }))
+    lineItems.value = lineItems.value.map(item => {
+      const hasValue = item.qty !== '' && item.qty !== null && item.rate !== '' && item.rate !== null
+      return {
+        description: item.description,
+        amount:      hasValue ? ((parseFloat(item.qty) || 0) * (parseFloat(item.rate) || 0)).toFixed(2) : '',
+      }
+    })
   } else {
-    lineItems.value = lineItems.value.map(item => ({
-      description: item.description,
-      qty:         1,
-      rate:        parseFloat(item.amount) || 0,
-    }))
+    lineItems.value = lineItems.value.map(item => {
+      const hasValue = item.amount !== '' && item.amount !== null
+      return {
+        description: item.description,
+        qty:         hasValue ? 1 : '',
+        rate:        hasValue ? parseFloat(item.amount) || 0 : '',
+      }
+    })
   }
   useQty.value = !useQty.value
 }
@@ -551,48 +574,118 @@ async function extractError(e) {
   return data?.message || e.message || 'Unknown error'
 }
 
+function clearFieldError(field) {
+  if (errorFields.value[field]) {
+    delete errorFields.value[field]
+    errorFields.value = { ...errorFields.value }
+  }
+  if (error.value) error.value = ''
+}
+
+function clearLineItemError(index, field) {
+  if (errorFields.value.lineItems?.[index]?.[field]) {
+    delete errorFields.value.lineItems[index][field]
+    errorFields.value = { ...errorFields.value }
+  }
+  if (error.value) error.value = ''
+}
+
+function isRowEmpty(item) {
+  const desc = (item.description || '').trim()
+  if (useQty.value) {
+    const qty = item.qty === '' || item.qty === null
+    const rate = item.rate === '' || item.rate === null
+    return !desc && qty && rate
+  }
+  const amt = item.amount === '' || item.amount === null
+  return !desc && amt
+}
+
+function scrollToError() {
+  setTimeout(() => {
+    const el = document.querySelector('.field-error')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 50)
+}
+
 async function generate() {
   error.value = ''
+  errorFields.value = {}
+
+  let hasError = false
+  const errors = { lineItems: {} }
 
   if (!recipient.value.name) {
-    error.value = 'Recipient name is required.'
-    return
+    errors.recipientName = true
+    error.value = 'Please enter a recipient name.'
+    hasError = true
   }
 
-  for (const [i, item] of lineItems.value.entries()) {
-    const row = `Row ${i + 1}`
-    if (!item.description.trim()) {
-      error.value = `${row}: description is required.`
-      return
+  const nonEmptyItems = lineItems.value.filter(item => !isRowEmpty(item))
+
+  if (nonEmptyItems.length === 0) {
+    const firstIndex = 0
+    errors.lineItems[firstIndex] = { description: true }
+    error.value = 'Please add at least one line item.'
+    hasError = true
+  } else {
+    for (const item of nonEmptyItems) {
+      const i = lineItems.value.indexOf(item)
+      const desc = (item.description || '').trim()
+      const itemErrors = {}
+
+      if (!desc) {
+        itemErrors.description = true
+        if (!error.value) error.value = 'Please enter a description for each line item.'
+        hasError = true
+      }
+
+      if (useQty.value) {
+        const qtyVal = parseFloat(item.qty)
+        const rateVal = parseFloat(item.rate)
+        if (item.qty === '' || item.qty === null || isNaN(qtyVal) || qtyVal < 0) {
+          itemErrors.qty = true
+          if (!error.value) error.value = 'Please enter a valid quantity.'
+          hasError = true
+        }
+        if (item.rate === '' || item.rate === null || isNaN(rateVal) || rateVal < 0) {
+          itemErrors.rate = true
+          if (!error.value) error.value = 'Please enter a valid rate.'
+          hasError = true
+        }
+      } else {
+        const amtVal = parseFloat(item.amount)
+        if (item.amount === '' || item.amount === null || isNaN(amtVal) || amtVal < 0) {
+          itemErrors.amount = true
+          if (!error.value) error.value = 'Please enter a valid amount.'
+          hasError = true
+        }
+      }
+
+      if (Object.keys(itemErrors).length > 0) {
+        errors.lineItems[i] = itemErrors
+      }
     }
-    if (useQty.value) {
-      if (item.qty === '' || item.qty === null || isNaN(parseFloat(item.qty)) || parseFloat(item.qty) < 0) {
-        error.value = `${row}: qty must be a number of 0 or greater.`
-        return
-      }
-      if (item.rate === '' || item.rate === null || isNaN(parseFloat(item.rate)) || parseFloat(item.rate) < 0) {
-        error.value = `${row}: rate must be a number of 0 or greater.`
-        return
-      }
-    } else {
-      if (item.amount === '' || item.amount === null || isNaN(parseFloat(item.amount)) || parseFloat(item.amount) < 0) {
-        error.value = `${row}: amount must be a number of 0 or greater.`
-        return
-      }
-    }
+  }
+
+  if (hasError) {
+    errorFields.value = errors
+    scrollToError()
+    return
   }
 
   generating.value = true
   const logEntry   = addLog('pending', 'Generating PDF…')
   try {
+    const validItems = lineItems.value.filter(item => !isRowEmpty(item))
     const payload = useQty.value
-      ? lineItems.value.map(i => ({
+      ? validItems.map(i => ({
           description: i.description.trim(),
           qty:         parseFloat(i.qty),
           rate:        parseFloat(i.rate),
           amount:      parseFloat(i.qty) * parseFloat(i.rate),
         }))
-      : lineItems.value.map(i => ({
+      : validItems.map(i => ({
           description: i.description.trim(),
           amount:      parseFloat(i.amount),
         }))

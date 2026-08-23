@@ -188,3 +188,17 @@
 }
 
 .btn-dev-fill:hover { background: var(--accent-bg); }
+
+/* Field error state */
+.field-error {
+  border-color: var(--danger) !important;
+  animation: shake 0.4s ease-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
