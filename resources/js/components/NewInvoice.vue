@@ -445,8 +445,12 @@ function toggleQty() {
 }
 
 onMounted(async () => {
-  const { data } = await axios.get('/api/recipients')
-  recipients.value = data
+  try {
+    const { data } = await axios.get('/api/recipients')
+    recipients.value = data
+  } catch {
+    // Saved recipients unavailable - user can still enter manually
+  }
 })
 
 function onRecipientSelect() {
@@ -957,7 +961,6 @@ function sendEmail() {
   background: transparent;
   outline: none;
   transition: border-color 0.13s, background 0.13s;
-  color-scheme: light dark;
 }
 
 .table-input:hover {

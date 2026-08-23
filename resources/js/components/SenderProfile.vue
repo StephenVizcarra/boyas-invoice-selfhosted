@@ -162,10 +162,14 @@ function scrollToError() {
 }
 
 onMounted(async () => {
-  const { data } = await axios.get('/api/sender')
-  Object.assign(form.value, data)
-  if (data.logo_path) {
-    logoPreview.value = `/api/sender/logo?t=${Date.now()}`
+  try {
+    const { data } = await axios.get('/api/sender')
+    Object.assign(form.value, data)
+    if (data.logo_path) {
+      logoPreview.value = `/api/sender/logo?t=${Date.now()}`
+    }
+  } catch {
+    addLog('error', 'Failed to load profile')
   }
 })
 
