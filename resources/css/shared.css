@@ -1,5 +1,7 @@
 /* ── Theme variables ── */
 :root {
+  color-scheme: light;
+
   /* Content area */
   --bg-page:         #f5f4f0;
   --bg-card:         #ffffff;
@@ -49,6 +51,8 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
+
   --bg-page:         #0c0a09;
   --bg-card:         #1c1917;
   --bg-input:        #231f1d;

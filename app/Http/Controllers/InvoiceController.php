@@ -7,6 +7,7 @@ use App\Models\InvoiceCounter;
 use App\Models\Sender;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,10 +32,12 @@ class InvoiceController extends Controller
 
         $sender = Sender::first();
 
-        // Increment first, then read — produces 1 on first call (matching previous behavior)
-        $counter = InvoiceCounter::firstOrCreate(['id' => 1], ['counter' => 0]);
-        $counter->increment('counter');
-        $number = $counter->counter;
+        $number = DB::transaction(function () {
+            $counter = InvoiceCounter::lockForUpdate()->firstOrCreate(['id' => 1], ['counter' => 0]);
+            $counter->increment('counter');
+
+            return $counter->counter;
+        });
 
         $invoiceNumber = 'INV-'.now()->format('Y').'-'.str_pad($number, 4, '0', STR_PAD_LEFT);
         $total = array_sum(array_column($request->line_items, 'amount'));
