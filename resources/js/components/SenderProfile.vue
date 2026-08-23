@@ -25,6 +25,8 @@
               :required="field.required"
               :placeholder="field.placeholder || ''"
               class="field-input"
+              :class="{ 'field-error': errorFields[field.key] }"
+              @input="clearFieldError(field.key)"
             >
           </div>
         </div>
@@ -110,6 +112,7 @@
             Saved
           </span>
         </transition>
+        <p v-if="error" class="error-msg">{{ error }}</p>
       </div>
     </form>
   </div>
@@ -140,6 +143,23 @@ const logoError     = ref('')
 const saving        = ref(false)
 const saved         = ref(false)
 const fileInput     = ref(null)
+const errorFields   = ref({})
+const error         = ref('')
+
+function clearFieldError(key) {
+  if (errorFields.value[key]) {
+    delete errorFields.value[key]
+    errorFields.value = { ...errorFields.value }
+  }
+  error.value = ''
+}
+
+function scrollToError() {
+  setTimeout(() => {
+    const el = document.querySelector('.field-error')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 50)
+}
 
 onMounted(async () => {
   const { data } = await axios.get('/api/sender')
@@ -228,6 +248,16 @@ function fillTestData() {
 }
 
 async function save() {
+  error.value = ''
+  errorFields.value = {}
+
+  if (!form.value.name?.trim()) {
+    errorFields.value.name = true
+    error.value = 'Please enter your name.'
+    scrollToError()
+    return
+  }
+
   saving.value = true
   saved.value  = false
   const entry = addLog('pending', 'Saving profile…')
@@ -346,4 +376,10 @@ async function save() {
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.error-msg {
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 500;
+}
 </style>
