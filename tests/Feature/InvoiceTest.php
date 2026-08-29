@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Invoice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -139,5 +140,17 @@ class InvoiceTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_generate_does_not_persist_logo_bytes_in_sender_snapshot(): void
+    {
+        $this->postJson('/api/invoice/generate', $this->validPayload)
+            ->assertStatus(200);
+
+        $invoice = Invoice::first();
+
+        $this->assertNotNull($invoice);
+        $this->assertArrayNotHasKey('logo_data', $invoice->sender_snapshot);
+        $this->assertArrayNotHasKey('logo_mime', $invoice->sender_snapshot);
     }
 }

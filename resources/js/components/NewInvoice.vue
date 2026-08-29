@@ -368,7 +368,6 @@ const dragIndex     = ref(null)
 const dragOverIndex = ref(null)
 
 const showEmailModal        = ref(false)
-const generatedInvoiceNumber = ref('')
 const emailTo               = ref('')
 const emailSubject          = ref('')
 const emailBody             = ref('')
@@ -711,7 +710,6 @@ async function generate() {
     link.click()
     URL.revokeObjectURL(url)
 
-    generatedInvoiceNumber.value = invoiceNumber
     emailTo.value      = recipient.value.email || ''
     emailSubject.value = `Invoice ${invoiceNumber}`
     emailBody.value    = `Hi ${recipient.value.name},\n\nPlease see the attached invoice ${invoiceNumber} below .\n\nThanks again,\n\n<Your name here>`
@@ -746,18 +744,6 @@ function sendEmail() {
 /* Recipient select */
 .recipient-select-wrap {
   margin-bottom: 16px;
-}
-
-.recipient-select-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #d97706;
-  margin-bottom: 6px;
 }
 
 .select-input {

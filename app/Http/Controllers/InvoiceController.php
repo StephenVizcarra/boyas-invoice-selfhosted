@@ -91,8 +91,6 @@ class InvoiceController extends Controller
                     'city_state_zip' => $sender?->city_state_zip,
                     'email' => $sender?->email,
                     'phone' => $sender?->phone,
-                    'logo_data' => $logoData,
-                    'logo_mime' => $logoMime,
                 ],
                 'generated_at' => now(),
             ]);
