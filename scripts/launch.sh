@@ -12,7 +12,7 @@ if ! docker info >/dev/null 2>&1; then
     echo " not running."
     echo ""
     echo "  Starting Docker Desktop - this can take up to 60 seconds..."
-    open -a "Docker Desktop" 2>/dev/null
+    open -a Docker 2>/dev/null
 
     if [ $? -ne 0 ]; then
         echo ""
@@ -44,7 +44,7 @@ echo " ready."
 # --- 2. First-run warning ---
 if ! docker ps -a --filter "name=boyas_invoice" --format "{{.Names}}" | grep -q "boyas_invoice"; then
     echo ""
-    echo "  First launch detected! Please stretch your legs, grab a snack, and allow me to build the app. This will take a few minutes."
+    echo "  First launch detected! Downloading the app now. This can take a few minutes."
     echo ""
 fi
 
@@ -53,7 +53,8 @@ echo "  [2/3] Starting Boyas Invoice..."
 
 cd "$(dirname "$0")/.."
 
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 
 if [ $? -ne 0 ]; then
     echo ""

@@ -32,6 +32,24 @@ You only need a new ZIP if the launcher or `docker-compose.yml` itself changed.
 
 ---
 
+## Mac (no coding)
+
+About 10 minutes. Needs macOS 13 or newer, internet, and ~5 GB free disk (for Docker). Works on Apple Silicon (M1 and later) and Intel Macs.
+
+**1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).** Pick **Apple Silicon** or **Intel** to match your Mac ( → **About This Mac** → **Chip** or **Processor**). Drag **Docker** into **Applications**, open it, and accept the prompts. Wait until the whale icon in the menu bar stops animating. You can close the window; Docker keeps running.
+
+**2. Get the app.** On GitHub: **Code** → **Download ZIP**. Double-click the ZIP in **Downloads** to unzip it, then move the folder somewhere permanent (e.g. **Documents**). No Git needed.
+
+**3. Allow the launchers (once).** macOS blocks scripts downloaded from the internet. Double-click **`Launch Boyas Invoice.command`**; when macOS says it can't verify the file, click **Done**. Open **System Settings** → **Privacy & Security**, scroll down, and click **Open Anyway** next to the message about the file. Confirm with your password. Repeat for **`Stop Boyas Invoice.command`** the first time you use it.
+
+**Start:** double-click **`Launch Boyas Invoice.command`**. A Terminal window shows progress. Each launch pulls the latest image from GitHub Container Registry, then starts the app. First launch takes a few minutes. The browser should open **http://localhost:8080**. Tip: drag the file onto the right side of the Dock for one-click launching.
+
+**Stop:** double-click **`Stop Boyas Invoice.command`**. Leaving it running is fine; it uses little memory.
+
+Your data stays on this Mac (Docker volumes), the same as on Windows.
+
+---
+
 ## Docker (command line)
 
 Needs [Docker Desktop](https://www.docker.com/products/docker-desktop/).
@@ -67,7 +85,7 @@ composer run test    # PHPUnit
 
 | Problem | Fix |
 |--------|-----|
-| “Docker Desktop is not installed” | Install Docker Desktop (Windows section, step 1). |
+| “Docker Desktop is not installed” | Install Docker Desktop (step 1 of the Windows or Mac section). |
 | “Docker did not start in time” | Open Docker Desktop, wait until it is idle, launch again. |
 | Blank page or error in the browser | Wait 20–30 seconds and refresh, or stop and launch again. |
 | Port 8080 already in use | Stop whatever else is using 8080, or change the port. |
